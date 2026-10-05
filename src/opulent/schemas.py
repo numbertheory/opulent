@@ -42,9 +42,11 @@ class DocumentListItem(BaseModel):
     title: str
     format: str
     display_format: str
+    format_icon_svg: str = ""
     snippet: str
     created_at: datetime
     updated_at: datetime | None = None
+    effective_updated_at: datetime | None = None
     views: int
     version_count: int = 1
     character_count: int

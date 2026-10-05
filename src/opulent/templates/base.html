@@ -138,22 +138,24 @@
               data-format="{{ doc.format | lower }}"
             >
               <div class="drawer-doc-top">
+                <span
+                  class="doc-format-icon"
+                  style="display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0;"
+                  title="{{ doc.display_format }}"
+                >
+                  {{ doc.format_icon_svg | safe }}
+                </span>
                 <a href="/docs/{{ doc.doc_id }}" class="drawer-doc-title">
                   {{ doc.title }}
                 </a>
-                <span class="badge">{{ doc.display_format }}</span>
               </div>
               {% if doc.snippet %}
-                <div class="doc-snippet" style="margin: 0.35rem 0;">{{ doc.snippet }}</div>
+                <div class="doc-snippet">{{ doc.snippet }}</div>
               {% endif %}
               <div class="drawer-doc-meta">
-                <a href="/docs/{{ doc.doc_id }}" class="doc-id-code">{{ doc.doc_id }}</a>
-                <span>•</span>
-                <span>{{ doc.line_count }} lines</span>
-                <span>•</span>
-                <time class="local-time" datetime="{{ doc.created_at | iso_utc if doc.created_at else '' }}">{{ doc.created_at | datetime_12h }}</time>
+                <time class="local-time" datetime="{{ doc.effective_updated_at | iso_utc }}">{{ doc.effective_updated_at | datetime_12h }}</time>
                 {% if doc.version_count > 1 %}
-                  <span class="badge badge-gold" style="font-size: 0.7rem; padding: 0.1rem 0.35rem;">
+                  <span class="badge badge-gold" style="font-size: 0.68rem; padding: 0.05rem 0.3rem;">
                     v{{ doc.current_version }}
                   </span>
                 {% endif %}

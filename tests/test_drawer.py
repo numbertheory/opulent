@@ -187,3 +187,87 @@ async def test_drawer_contains_search_and_pagination(client: AsyncClient):
     # Pagination inside drawer
     assert "Showing page <strong>1</strong>" in response.text
     assert "Next ›" in response.text
+
+
+@pytest.mark.asyncio
+async def test_drawer_compact_icons_no_id_no_lines_and_sorted_by_newest(client: AsyncClient):
+    """
+    Verify:
+    1. Document flyover window uses format SVG icons instead of word tags.
+    2. Document ID and lines indicator are removed from drawer entries.
+    3. The updated time is displayed on each drawer entry.
+    4. Drawer items are sorted by newest (most recently updated/created) by default.
+    """
+    # 1. Create three documents in sequence
+    res1 = await client.post(
+        "/docs",
+        data={"title": "First Doc", "format": "python", "content": "x = 1"},
+        follow_redirects=False,
+    )
+    doc1_id = res1.headers["location"].split("/docs/")[1]
+
+    res2 = await client.post(
+        "/docs",
+        data={"title": "Second Doc", "format": "rust", "content": "fn main() {}"},
+        follow_redirects=False,
+    )
+    doc2_id = res2.headers["location"].split("/docs/")[1]
+
+    res3 = await client.post(
+        "/docs",
+        data={"title": "Third Doc", "format": "go", "content": "package main"},
+        follow_redirects=False,
+    )
+    doc3_id = res3.headers["location"].split("/docs/")[1]
+
+    # Verify initial newest-first order: Third Doc, Second Doc, First Doc
+    home_res = await client.get("/?drawer=1")
+    assert home_res.status_code == 200
+
+    drawer_cards = home_res.text.split('class="drawer-doc-card"')
+    assert len(drawer_cards) >= 4  # at least 3 cards + preamble
+
+    # First card in drawer should be Third Doc
+    assert "Third Doc" in drawer_cards[1]
+    assert "Second Doc" in drawer_cards[2]
+    assert "First Doc" in drawer_cards[3]
+
+    # 2. Edit First Doc to make it the most recently updated
+    await client.post(
+        f"/docs/{doc1_id}/edit",
+        data={"title": "First Doc (Updated)", "format": "python", "content": "x = 2; y = 3"},
+    )
+
+    # Re-fetch page: First Doc (Updated) must now be at the very top!
+    updated_home_res = await client.get("/?drawer=1")
+    assert updated_home_res.status_code == 200
+
+    updated_cards = updated_home_res.text.split('class="drawer-doc-card"')
+    assert "First Doc (Updated)" in updated_cards[1]
+    assert "Third Doc" in updated_cards[2]
+    assert "Second Doc" in updated_cards[3]
+
+    # Inspect the top card content
+    top_card_html = updated_cards[1].split('</div>\n            </div>')[0]
+
+    # Verify format icon is present instead of word tag badge
+    assert 'class="format-icon format-icon-python"' in top_card_html
+    assert '<span class="badge">Python</span>' not in top_card_html
+    assert '<span class="badge">Shell / Bash</span>' not in updated_home_res.text.split('class="drawer-content"')[1].split('class="drawer-footer"')[0]
+
+    # Verify document ID and line count are NOT in the drawer card
+    assert 'class="doc-id-code"' not in top_card_html
+    assert doc1_id not in top_card_html.split('class="drawer-doc-meta"')[1]
+    assert "lines" not in top_card_html.split('class="drawer-doc-meta"')[1]
+
+    # Verify updated time is displayed
+    assert 'class="local-time"' in top_card_html
+
+    # Also verify /api/docs reflects the same newest-first ordering and includes format_icon_svg
+    api_res = await client.get("/api/docs?page=1&per_page=15")
+    assert api_res.status_code == 200
+    api_data = api_res.json()
+    assert api_data["items"][0]["title"] == "First Doc (Updated)"
+    assert api_data["items"][0]["format_icon_svg"] != ""
+    assert "format-icon-python" in api_data["items"][0]["format_icon_svg"]
+

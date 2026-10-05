@@ -257,12 +257,15 @@ async def list_documents(
 
     total_pages = max(1, ceil(total / per_page)) if total > 0 else 1
 
-    # Items for current page
+    # Items for current page - sorted by newest updated first
     offset = (page - 1) * per_page
     stmt = (
         select(Document)
         .options(selectinload(Document.versions))
-        .order_by(Document.updated_at.desc(), Document.id.desc())
+        .order_by(
+            func.coalesce(Document.updated_at, Document.created_at).desc(),
+            Document.id.desc(),
+        )
         .offset(offset)
         .limit(per_page)
     )
