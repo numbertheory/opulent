@@ -124,3 +124,58 @@ async def test_pagination_web(client: AsyncClient):
     assert res_p2.status_code == 200
     assert "Showing page <strong>2</strong> of <strong>2</strong>" in res_p2.text
     assert "‹ Previous" in res_p2.text
+
+
+@pytest.mark.asyncio
+async def test_documents_list_view_empty(client: AsyncClient):
+    response = await client.get("/documents")
+    assert response.status_code == 200
+    assert "All Documents" in response.text
+    assert "No documents created yet" in response.text
+    assert 'id="docked-drawer-tab"' not in response.text
+
+
+@pytest.mark.asyncio
+async def test_documents_list_view_pagination(client: AsyncClient):
+    for i in range(15):
+        await client.post(
+            "/docs",
+            data={
+                "title": f"Standalone Doc {i}",
+                "format": "markdown",
+                "content": f"Content for standalone doc {i}",
+            },
+        )
+
+    # Page 1
+    p1 = await client.get("/documents?page=1&per_page=10")
+    assert p1.status_code == 200
+    assert "Showing page <strong>1</strong> of <strong>2</strong>" in p1.text
+    assert "Next ›" in p1.text
+    assert 'id="docked-drawer-tab"' not in p1.text
+
+    # Page 2
+    p2 = await client.get("/documents?page=2&per_page=10")
+    assert p2.status_code == 200
+    assert "Showing page <strong>2</strong> of <strong>2</strong>" in p2.text
+    assert "‹ Previous" in p2.text
+    assert 'id="docked-drawer-tab"' not in p2.text
+
+
+@pytest.mark.asyncio
+async def test_theme_toggle_elements(client: AsyncClient):
+    response = await client.get("/")
+    assert response.status_code == 200
+
+    # Inline head script for instant theme application without FOUC
+    assert "opulent-theme" in response.text
+    assert "data-theme" in response.text
+    assert "prefers-color-scheme" in response.text
+
+    # Banner theme switcher button
+    assert 'id="theme-toggle-btn"' in response.text
+    assert 'class="theme-toggle-btn"' in response.text
+    assert 'onclick="toggleTheme()"' in response.text
+    assert 'id="theme-toggle-text"' in response.text
+    assert "☀️" in response.text
+    assert "🌙" in response.text

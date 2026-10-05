@@ -113,7 +113,109 @@ window.filterDrawerDocuments = function (query) {
   }
 };
 
+// Filter Documents in the Standalone Full Table View
+window.filterDocumentsTable = function (query) {
+  const q = (query || "").trim().toLowerCase();
+  const rows = document.querySelectorAll(".docs-table tbody tr.doc-table-row");
+  let visibleCount = 0;
+
+  rows.forEach((row) => {
+    const title = row.getAttribute("data-title") || "";
+    const id = row.getAttribute("data-id") || "";
+    const format = row.getAttribute("data-format") || "";
+
+    if (!q || title.includes(q) || id.includes(q) || format.includes(q)) {
+      row.style.display = "";
+      visibleCount++;
+    } else {
+      row.style.display = "none";
+    }
+  });
+
+  const noResultsRow = document.getElementById("table-no-results");
+  if (noResultsRow) {
+    noResultsRow.style.display =
+      visibleCount === 0 && rows.length > 0 ? "" : "none";
+  }
+};
+
+// Theme Management (Light / Dark with system default and persistence)
+function getSystemTheme() {
+  return window.matchMedia &&
+    window.matchMedia("(prefers-color-scheme: light)").matches
+    ? "light"
+    : "dark";
+}
+
+function getCurrentTheme() {
+  try {
+    const saved = localStorage.getItem("opulent-theme");
+    if (saved === "light" || saved === "dark") {
+      return saved;
+    }
+  } catch (e) {}
+  return getSystemTheme();
+}
+
+function applyTheme(theme, persist = false) {
+  document.documentElement.setAttribute("data-theme", theme);
+  if (persist) {
+    try {
+      localStorage.setItem("opulent-theme", theme);
+    } catch (e) {
+      console.warn("Could not save theme to localStorage:", e);
+    }
+  }
+  updateThemeToggleUI(theme);
+}
+
+function updateThemeToggleUI(theme) {
+  const btn = document.getElementById("theme-toggle-btn");
+  const label = document.getElementById("theme-toggle-text");
+  if (btn) {
+    const isDark = theme === "dark";
+    btn.setAttribute(
+      "title",
+      isDark ? "Switch to light theme" : "Switch to dark theme"
+    );
+    btn.setAttribute(
+      "aria-label",
+      isDark ? "Switch to light theme" : "Switch to dark theme"
+    );
+    btn.classList.toggle("theme-dark", isDark);
+    btn.classList.toggle("theme-light", !isDark);
+    if (label) {
+      label.textContent = isDark ? "Dark" : "Light";
+    }
+  }
+}
+
+window.toggleTheme = function () {
+  const current =
+    document.documentElement.getAttribute("data-theme") || getCurrentTheme();
+  const next = current === "dark" ? "light" : "dark";
+  applyTheme(next, true);
+};
+
+// Automatically react to OS preference changes if no manual preference is set
+if (window.matchMedia) {
+  window
+    .matchMedia("(prefers-color-scheme: dark)")
+    .addEventListener("change", (e) => {
+      try {
+        if (!localStorage.getItem("opulent-theme")) {
+          applyTheme(e.matches ? "dark" : "light", false);
+        }
+      } catch (err) {}
+    });
+}
+
 document.addEventListener("DOMContentLoaded", () => {
+  // Sync toggle button UI on DOMContentLoaded
+  const initialTheme =
+    document.documentElement.getAttribute("data-theme") || getCurrentTheme();
+  updateThemeToggleUI(initialTheme);
+
   // Toast helper
   const toast = document.getElementById("toast");
   function showToast(message) {
@@ -161,10 +263,11 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     }
 
-    // Pressing 'd' or 'D' opens drawer when not in an input
+    // Pressing 'd' or 'D' opens drawer when not in an input, if drawer tab is available
     if ((e.key === "d" || e.key === "D") && !isTyping && !e.ctrlKey && !e.metaKey) {
+      const dockedTab = document.getElementById("docked-drawer-tab");
       const drawer = document.getElementById("docs-drawer");
-      if (drawer) {
+      if (dockedTab && drawer) {
         if (drawer.classList.contains("open")) {
           closeDrawer();
         } else {

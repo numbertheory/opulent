@@ -62,6 +62,36 @@ async def index(
     )
 
 
+@router.get("/documents", response_class=HTMLResponse)
+async def list_documents_standalone(
+    request: Request,
+    page: int = Query(default=1, ge=1),
+    per_page: int = Query(default=15, ge=1, le=50),
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Standalone view of all documents in a full table.
+    Shows the same data as the collapsible drawer, but as a full page view
+    without the left-hand flyout button.
+    """
+    documents, total, total_pages = await list_documents(
+        db=db, page=page, per_page=per_page
+    )
+
+    return templates.TemplateResponse(
+        request=request,
+        name="documents.html",
+        context={
+            "documents": documents,
+            "page": page,
+            "per_page": per_page,
+            "total": total,
+            "total_pages": total_pages,
+            "hide_drawer_tab": True,
+        },
+    )
+
+
 
 @router.post("/docs")
 async def create_document_form(

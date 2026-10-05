@@ -1,0 +1,157 @@
+{% extends "base.html" %}
+
+{% block title %}All Documents - Opulent{% endblock %}
+
+{% block content %}
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">
+        <span>📁</span>
+        <span>All Documents</span>
+        {% if total is defined and total is not none %}
+          <span class="badge badge-blue" id="table-total-count">{{ total }}</span>
+        {% endif %}
+      </div>
+      <div style="display: flex; gap: 0.75rem; align-items: center;">
+        <a href="/" class="btn btn-primary btn-sm">
+          <span>✍️ Create Document</span>
+        </a>
+      </div>
+    </div>
+
+    <!-- Search / Filter Bar for Table -->
+    <div class="card-body" style="padding-bottom: 0.75rem;">
+      <div style="max-width: 480px;">
+        <input
+          type="text"
+          id="table-search-input"
+          class="form-input"
+          placeholder="Filter documents by title, ID, format..."
+          oninput="filterDocumentsTable(this.value)"
+          aria-label="Filter documents"
+        />
+      </div>
+    </div>
+
+    <!-- Full Documents Table -->
+    <div class="docs-table-wrapper">
+      {% if documents %}
+        <table class="docs-table" id="all-documents-table">
+          <thead>
+            <tr>
+              <th style="min-width: 240px;">Document</th>
+              <th>Format</th>
+              <th>Document ID</th>
+              <th>Lines</th>
+              <th>Created</th>
+              <th>Version</th>
+              <th style="text-align: right;">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for doc in documents %}
+              <tr
+                class="doc-table-row"
+                data-title="{{ doc.title | lower }}"
+                data-id="{{ doc.doc_id | lower }}"
+                data-format="{{ doc.format | lower }}"
+              >
+                <td>
+                  <a href="/docs/{{ doc.doc_id }}" class="doc-link">
+                    {{ doc.title }}
+                  </a>
+                  {% if doc.snippet %}
+                    <div class="doc-snippet">{{ doc.snippet }}</div>
+                  {% endif %}
+                </td>
+                <td>
+                  <span class="badge">{{ doc.display_format }}</span>
+                </td>
+                <td>
+                  <a href="/docs/{{ doc.doc_id }}" class="doc-id-code">{{ doc.doc_id }}</a>
+                </td>
+                <td style="color: var(--text-secondary); font-family: var(--font-mono); font-size: 0.85rem;">
+                  {{ doc.line_count }}
+                </td>
+                <td style="color: var(--text-muted); font-size: 0.85rem; white-space: nowrap;">
+                  {{ doc.created_at.strftime('%Y-%m-%d %H:%M') if doc.created_at else '' }}
+                </td>
+                <td>
+                  {% if doc.version_count > 1 %}
+                    <a
+                      href="/docs/{{ doc.doc_id }}/history"
+                      class="badge badge-gold"
+                      title="View version history"
+                      style="text-decoration: none;"
+                    >
+                      v{{ doc.current_version }}
+                    </a>
+                  {% else %}
+                    <span class="badge" style="opacity: 0.7;">v1</span>
+                  {% endif %}
+                </td>
+                <td style="text-align: right; white-space: nowrap;">
+                  <a href="/docs/{{ doc.doc_id }}" class="btn btn-secondary btn-sm" style="padding: 0.25rem 0.55rem; font-size: 0.75rem;">
+                    View
+                  </a>
+                  <a href="/docs/{{ doc.doc_id }}/edit" class="btn btn-secondary btn-sm" style="padding: 0.25rem 0.55rem; font-size: 0.75rem;">
+                    Edit
+                  </a>
+                </td>
+              </tr>
+            {% endfor %}
+            <tr id="table-no-results" style="display: none;">
+              <td colspan="7" style="text-align: center; padding: 2rem; color: var(--text-muted);">
+                No documents match your filter.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      {% else %}
+        <div class="empty-state">
+          <div class="empty-state-icon">📄</div>
+          <h3>No documents created yet</h3>
+          <p style="margin-top: 0.5rem; font-size: 0.9rem;">
+            Be the first to publish a document using the editor!
+          </p>
+          <a href="/" class="btn btn-primary" style="margin-top: 1.25rem;">
+            <span>✍️ Create First Document</span>
+          </a>
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- Pagination Controls -->
+    {% if total_pages is defined and total_pages > 1 %}
+      <div class="card-body" style="padding-top: 0;">
+        <div class="pagination">
+          <div class="pagination-info">
+            Showing page <strong>{{ page if page is defined else 1 }}</strong> of <strong>{{ total_pages }}</strong> ({{ total }} documents)
+          </div>
+          <div class="pagination-controls">
+            {% if page is defined and page > 1 %}
+              <a href="?page={{ page - 1 }}" class="btn btn-secondary btn-sm">‹ Previous</a>
+            {% endif %}
+
+            {% for p in range(1, total_pages + 1) %}
+              {% if p == 1 or p == total_pages or (page is defined and p >= page - 2 and p <= page + 2) %}
+                <a
+                  href="?page={{ p }}"
+                  class="page-num {% if page is defined and p == page %}active{% endif %}"
+                >
+                  {{ p }}
+                </a>
+              {% elif page is defined and (p == page - 3 or p == page + 3) %}
+                <span style="color: var(--text-muted); padding: 0 0.25rem;">…</span>
+              {% endif %}
+            {% endfor %}
+
+            {% if page is defined and page < total_pages %}
+              <a href="?page={{ page + 1 }}" class="btn btn-secondary btn-sm">Next ›</a>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    {% endif %}
+  </div>
+{% endblock %}

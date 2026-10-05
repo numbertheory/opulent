@@ -6,10 +6,25 @@
   <title>{% block title %}Opulent - Refined Text & Pastebin Service{% endblock %}</title>
   <link rel="stylesheet" href="/static/css/style.css">
   <link rel="stylesheet" href="/pygments.css">
+  <script>
+    (function () {
+      try {
+        var savedTheme = localStorage.getItem("opulent-theme");
+        var theme = savedTheme;
+        if (!theme) {
+          theme = window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark";
+        }
+        document.documentElement.setAttribute("data-theme", theme);
+      } catch (e) {
+        document.documentElement.setAttribute("data-theme", "dark");
+      }
+    })();
+  </script>
   {% block head %}{% endblock %}
 </head>
 <body>
-  <!-- Persistent Docked Left-Hand Tab (Side trigger with NO count) -->
+  <!-- Persistent Docked Left-Hand Tab (Side trigger with NO count; hidden on standalone documents view) -->
+  {% if not hide_drawer_tab %}
   <button
     type="button"
     id="docked-drawer-tab"
@@ -21,6 +36,7 @@
     <span class="docked-tab-icon">📂</span>
     <span class="docked-tab-text">Documents</span>
   </button>
+  {% endif %}
 
   <header class="site-header">
     <div class="nav-container">
@@ -30,23 +46,38 @@
         <span class="brand-subtitle">Pastebin</span>
       </a>
       <nav class="nav-links">
-        <a href="/" class="nav-link">＋ New Document</a>
-        <!-- Persistent "Browse" documents button in the top banner (NO count) -->
-        <button
-          type="button"
-          id="nav-drawer-toggle"
-          class="btn btn-secondary btn-sm nav-drawer-btn"
-          onclick="openDrawer()"
-          title="Browse documents in the collapsible drawer"
+        <a
+          href="/documents"
+          id="nav-documents-btn"
+          class="btn btn-secondary btn-sm nav-docs-btn"
+          title="View all documents in a full table"
         >
-          <span>📂 Browse Documents</span>
-        </button>
+          <span>📁 Documents</span>
+        </a>
         <a href="/api/docs-ui" class="nav-link" target="_blank">API Docs</a>
+        <div class="theme-switch-wrapper">
+          <button
+            type="button"
+            id="theme-toggle-btn"
+            class="theme-toggle-btn"
+            onclick="toggleTheme()"
+            title="Toggle light / dark theme"
+            aria-label="Toggle light / dark theme"
+          >
+            <span class="theme-toggle-track">
+              <span class="theme-toggle-icon icon-sun" aria-hidden="true">☀️</span>
+              <span class="theme-toggle-icon icon-moon" aria-hidden="true">🌙</span>
+              <span class="theme-toggle-thumb" aria-hidden="true"></span>
+            </span>
+            <span class="theme-toggle-text" id="theme-toggle-text">Dark</span>
+          </button>
+        </div>
       </nav>
     </div>
   </header>
 
-  <!-- Backdrop Overlay for Drawer -->
+  <!-- Backdrop Overlay & Collapsible Left Drawer (Suppressed on standalone documents view) -->
+  {% if not hide_drawer_tab %}
   <div
     id="drawer-backdrop"
     class="drawer-backdrop {% if open_drawer %}open{% endif %}"
@@ -186,6 +217,7 @@
       </button>
     </div>
   </aside>
+  {% endif %}
 
   <main class="container">
     {% block content %}{% endblock %}
