@@ -1,3 +1,4 @@
+from datetime import datetime, timezone
 import html
 import bleach
 import markdown
@@ -165,3 +166,125 @@ def calculate_stats(content: str) -> dict[str, int]:
         "words": words,
         "chars": chars,
     }
+
+
+def to_iso_utc(dt: datetime | None) -> str:
+    """Format datetime into ISO 8601 string in UTC for client-side local conversion."""
+    if not dt:
+        return ""
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=timezone.utc)
+    else:
+        dt = dt.astimezone(timezone.utc)
+    return dt.isoformat()
+
+
+FORMAT_ICONS_SVG: dict[str, str] = {
+    "markdown": (
+        '<svg class="format-icon format-icon-markdown" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-label="Markdown">'
+        '<rect x="2" y="4" width="20" height="16" rx="2"/><path d="M6 15V9l3 4 3-4v6"/><path d="M17 12l2 2 2-2"/><path d="M19 9v5"/>'
+        '</svg>'
+    ),
+    "plain": (
+        '<svg class="format-icon format-icon-plain" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-label="Plain Text">'
+        '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="14" y2="17"/>'
+        '</svg>'
+    ),
+    "python": (
+        '<svg class="format-icon format-icon-python" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#eab308" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-label="Python">'
+        '<path d="M12 2c-4 0-4 1.8-4 1.8v1.8h4v.6H6.5S3 6.2 3 9.8s3.1 3.4 3.1 3.4h1.1v-1.6s-.1-1.9 1.9-1.9h4.7v-.5H9s-.6-.6-.6-1.5c0-.8.7-1.5 1.5-1.5h5.3s1.4 0 1.4 1.4v2.8h-4.6v.5h4.6s2.4 0 2.4-3.1-2-5.3-7-5.3z" fill="rgba(56,189,248,0.2)"/>'
+        '<circle cx="9.5" cy="4.5" r=".75" fill="#38bdf8"/>'
+        '<path d="M12 22c4 0 4-1.8 4-1.8v-1.8h-4v-.6h5.5s3.5 0 3.5-3.6-3.1-3.4-3.1-3.4h-1.1v1.6s.1 1.9-1.9 1.9H10.2v.5h4.8s.6.6.6 1.5c0 .8-.7 1.5-1.5 1.5H8.8s-1.4 0-1.4-1.4v-2.8h4.6v-.5H7.4s-2.4 0-2.4 3.1 2 5.3 7 5.3z" fill="rgba(234,179,8,0.2)"/>'
+        '<circle cx="14.5" cy="19.5" r=".75" fill="#eab308"/>'
+        '</svg>'
+    ),
+    "javascript": (
+        '<svg class="format-icon format-icon-javascript" width="18" height="18" viewBox="0 0 24 24" fill="none" aria-label="JavaScript">'
+        '<rect width="22" height="22" x="1" y="1" rx="4" fill="#F7DF1E"/>'
+        '<path d="M8 17.5c0 .8-.5 1.2-1.3 1.2-.7 0-1.2-.4-1.3-.9l1.1-.6c0 .3.1.5.3.5.2 0 .3-.1.3-.3v-4.6h1.2v4.7zm4.2-.1c.5 0 .9-.3.9-.7 0-.5-.4-.7-1.1-.9-.9-.3-1.6-.7-1.6-1.7 0-1 .8-1.7 2-1.7.9 0 1.6.4 1.8 1.1l-1 .6c-.1-.3-.4-.5-.8-.5-.4 0-.7.2-.7.5 0 .3.2.5.8.7 1 .4 1.9.7 1.9 1.9 0 1.2-.9 1.9-2.2 1.9-1.1 0-1.9-.5-2.2-1.3l1.1-.6c.2.4.5.7 1 .7z" fill="#000"/>'
+        '</svg>'
+    ),
+    "typescript": (
+        '<svg class="format-icon format-icon-typescript" width="18" height="18" viewBox="0 0 24 24" fill="none" aria-label="TypeScript">'
+        '<rect width="22" height="22" x="1" y="1" rx="4" fill="#3178C6"/>'
+        '<path d="M5.5 8h6v2h-2v7h-2v-7h-2V8zm7.5 5.8c.4.2.9.4 1.5.4.6 0 .9-.2.9-.5s-.2-.4-.8-.6c-1.1-.4-1.8-.9-1.8-1.9 0-1.2.9-2.2 2.5-2.2.8 0 1.5.2 2 .5l-.5 1.6c-.4-.2-.8-.4-1.4-.4-.5 0-.8.2-.8.5s.2.4.9.6c1.1.4 1.7 1 1.7 1.9 0 1.3-1 2.2-2.6 2.2-.9 0-1.7-.2-2.2-.5l.8-1.6z" fill="#FFF"/>'
+        '</svg>'
+    ),
+    "html": (
+        '<svg class="format-icon format-icon-html" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#f97316" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-label="HTML">'
+        '<polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/><line x1="14" y1="4" x2="10" y2="20"/>'
+        '</svg>'
+    ),
+    "css": (
+        '<svg class="format-icon format-icon-css" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-label="CSS">'
+        '<rect x="3" y="3" width="18" height="18" rx="3"/><path d="M7 8h10M7 12h10M7 16h6"/>'
+        '</svg>'
+    ),
+    "json": (
+        '<svg class="format-icon format-icon-json" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fbbf24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-label="JSON">'
+        '<path d="M8 3H6a2 2 0 0 0-2 2v4a2 2 0 0 1-2 2 2 2 0 0 1 2 2v4a2 2 0 0 0 2 2h2"/><path d="M16 3h2a2 2 0 0 1 2 2v4a2 2 0 0 0 2 2 2 2 0 0 0-2 2v4a2 2 0 0 1-2 2h-2"/>'
+        '</svg>'
+    ),
+    "yaml": (
+        '<svg class="format-icon format-icon-yaml" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#f43f5e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-label="YAML">'
+        '<path d="M4 5h5v5H4zM4 14h5v5H4zM15 9.5h5v5h-5z"/><path d="M9 7.5h3.5a2 2 0 0 1 2 2v3m0 0v2a2 2 0 0 1-2 2H9m5.5-4H15"/>'
+        '</svg>'
+    ),
+    "sql": (
+        '<svg class="format-icon format-icon-sql" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#60a5fa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-label="SQL">'
+        '<ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/>'
+        '</svg>'
+    ),
+    "bash": (
+        '<svg class="format-icon format-icon-bash" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-label="Bash">'
+        '<polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/>'
+        '</svg>'
+    ),
+    "go": (
+        '<svg class="format-icon format-icon-go" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#06b6d4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-label="Go">'
+        '<circle cx="12" cy="12" r="9"/><path d="M12 8a4 4 0 1 0 4 4h-4"/>'
+        '</svg>'
+    ),
+    "rust": (
+        '<svg class="format-icon format-icon-rust" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fb923c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-label="Rust">'
+        '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>'
+        '</svg>'
+    ),
+    "c": (
+        '<svg class="format-icon format-icon-c" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#60a5fa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-label="C">'
+        '<path d="M12 2l8 4.5v11L12 22l-8-4.5v-11L12 2z"/><path d="M15 9.5a3.5 3.5 0 1 0 0 5"/>'
+        '</svg>'
+    ),
+    "cpp": (
+        '<svg class="format-icon format-icon-cpp" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-label="C++">'
+        '<path d="M12 2l8 4.5v11L12 22l-8-4.5v-11L12 2z"/><path d="M13 10a2.5 2.5 0 1 0 0 4M17 11v2M16 12h2"/>'
+        '</svg>'
+    ),
+    "java": (
+        '<svg class="format-icon format-icon-java" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-label="Java">'
+        '<path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/>'
+        '</svg>'
+    ),
+    "dockerfile": (
+        '<svg class="format-icon format-icon-dockerfile" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-label="Dockerfile">'
+        '<path d="M2 13h20a1 1 0 0 1 1 1c0 4-3 7-8 7-4 0-7-2-9-5-1.5 0-3-.5-4-3z"/><rect x="4" y="9" width="3" height="3"/><rect x="8" y="9" width="3" height="3"/><rect x="12" y="9" width="3" height="3"/><rect x="8" y="5" width="3" height="3"/>'
+        '</svg>'
+    ),
+    "xml": (
+        '<svg class="format-icon format-icon-xml" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#f97316" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-label="XML">'
+        '<polyline points="7 8 3 12 7 16"/><polyline points="17 8 21 12 17 16"/><line x1="14" y1="4" x2="10" y2="20"/>'
+        '</svg>'
+    ),
+}
+
+DEFAULT_FORMAT_ICON_SVG = (
+    '<svg class="format-icon format-icon-default" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-label="Document">'
+    '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>'
+    '</svg>'
+)
+
+
+def get_format_icon_svg(format_type: str) -> str:
+    """Return an SVG icon representing the document format."""
+    normalized = normalize_format(format_type)
+    return FORMAT_ICONS_SVG.get(normalized, DEFAULT_FORMAT_ICON_SVG)

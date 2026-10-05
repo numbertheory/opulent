@@ -133,12 +133,26 @@
         <span>Created:</span>
         <strong>
           {% if is_historical %}
-            {{ version_obj.created_at.strftime('%b %d, %Y %H:%M UTC') if version_obj.created_at else '' }}
+            <time class="local-time" datetime="{{ version_obj.created_at | iso_utc if version_obj.created_at else '' }}">
+              {{ version_obj.created_at.strftime('%Y-%m-%d %H:%M') if version_obj.created_at else '' }}
+            </time>
           {% else %}
-            {{ document.created_at.strftime('%b %d, %Y %H:%M UTC') if document.created_at else '' }}
+            <time class="local-time" datetime="{{ document.created_at | iso_utc if document.created_at else '' }}">
+              {{ document.created_at.strftime('%Y-%m-%d %H:%M') if document.created_at else '' }}
+            </time>
           {% endif %}
         </strong>
       </div>
+      {% if not is_historical and document.version_count > 1 %}
+        <div class="meta-item">
+          <span>Updated:</span>
+          <strong>
+            <time class="local-time" datetime="{{ document.effective_updated_at | iso_utc }}">
+              {{ document.effective_updated_at.strftime('%Y-%m-%d %H:%M') }}
+            </time>
+          </strong>
+        </div>
+      {% endif %}
       <div class="meta-item">
         <span>Lines:</span>
         <strong>{{ version_obj.line_count if is_historical else document.line_count }}</strong>

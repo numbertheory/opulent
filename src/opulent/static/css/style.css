@@ -544,6 +544,44 @@ body {
   color: var(--accent-cyan);
 }
 
+/* Document Format SVG Icon */
+.doc-format-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.doc-format-icon .format-icon {
+  width: 18px;
+  height: 18px;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+/* Versions Column Plain Clickable Number Link */
+.version-count-link {
+  color: var(--accent-cyan);
+  text-decoration: none;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  font-size: 0.95rem;
+  padding: 0.15rem 0.4rem;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.version-count-link:hover {
+  text-decoration: underline;
+  color: var(--gold-hover);
+  background-color: rgba(212, 163, 75, 0.1);
+}
+
+[data-theme="light"] .version-count-link:hover {
+  color: var(--gold-primary);
+  background-color: rgba(180, 131, 40, 0.08);
+}
+
 /* Pagination */
 .pagination {
   display: flex;

@@ -8,8 +8,8 @@
       <div>
         <h1 class="doc-main-title">Compare Versions: {{ document.title }}</h1>
         <div style="margin-top: 0.5rem; color: var(--text-muted); font-size: 0.9rem;">
-          Comparing <strong>Version {{ v1 }}</strong> ({{ ver1.created_at.strftime('%Y-%m-%d %H:%M') if ver1.created_at else '' }})
-          with <strong>Version {{ v2 }}</strong> ({{ ver2.created_at.strftime('%Y-%m-%d %H:%M') if ver2.created_at else '' }})
+          Comparing <strong>Version {{ v1 }}</strong> (<time class="local-time" datetime="{{ ver1.created_at | iso_utc if ver1.created_at else '' }}">{{ ver1.created_at.strftime('%Y-%m-%d %H:%M') if ver1.created_at else '' }}</time>)
+          with <strong>Version {{ v2 }}</strong> (<time class="local-time" datetime="{{ ver2.created_at | iso_utc if ver2.created_at else '' }}">{{ ver2.created_at.strftime('%Y-%m-%d %H:%M') if ver2.created_at else '' }}</time>)
         </div>
       </div>
       <div class="doc-actions">
@@ -31,8 +31,8 @@
           <label for="v1" class="form-label">Base Version (Older)</label>
           <select id="v1" name="v1" class="form-select">
             {% for ver in versions | reverse %}
-              <option value="{{ ver.version }}" {% if ver.version == v1 %}selected{% endif %}>
-                v{{ ver.version }} ({{ ver.created_at.strftime('%b %d, %H:%M') if ver.created_at else '' }})
+              <option value="{{ ver.version }}" data-datetime="{{ ver.created_at | iso_utc if ver.created_at else '' }}" data-version="{{ ver.version }}" {% if ver.version == v1 %}selected{% endif %}>
+                v{{ ver.version }} ({{ ver.created_at.strftime('%Y-%m-%d %H:%M') if ver.created_at else '' }})
               </option>
             {% endfor %}
           </select>

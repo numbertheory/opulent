@@ -125,13 +125,35 @@ async def test_standalone_documents_view_without_left_flyout_button(client: Asyn
     assert 'id="docked-drawer-tab"' not in response.text
     assert "docked-tab-text" not in response.text
 
-    # 3. Banner elements are intact
+    # 3. Format is displayed as an SVG icon to the left of the title, NOT as a separate column or word tag
+    assert "format-icon-markdown" in response.text
+    assert "format-icon-python" in response.text
+    assert "<th>Format</th>" not in response.text
+
+    # 4. Document ID and Lines columns are removed
+    assert "<th>Document ID</th>" not in response.text
+    assert "<th>Lines</th>" not in response.text
+
+    # 5. Actions column is removed
+    assert "<th>Actions</th>" not in response.text
+
+    # 6. Created column is replaced by "Updated" column showing local time tag
+    assert "<th>Updated</th>" in response.text
+    assert "<th>Created</th>" not in response.text
+    assert 'class="local-time"' in response.text
+
+    # 7. Versions column shows plain clickable number (not a whole button) linking to history
+    assert "<th>Versions</th>" in response.text
+    assert 'class="version-count-link"' in response.text
+    assert "/history" in response.text
+
+    # 8. Banner elements are intact
     assert 'href="/documents"' in response.text
     assert 'id="theme-toggle-btn"' in response.text
     assert "＋ New Document" not in response.text
     assert "nav-drawer-toggle" not in response.text
 
-    # 4. Filter search input and count badge are present on the standalone view
+    # 9. Filter search input and count badge are present on the standalone view
     assert 'id="table-search-input"' in response.text
     assert 'id="table-total-count"' in response.text
 

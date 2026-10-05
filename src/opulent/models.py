@@ -64,6 +64,15 @@ class Document(Base):
         return SUPPORTED_FORMATS.get(self.format, self.format.capitalize())
 
     @property
+    def format_icon_svg(self) -> str:
+        from opulent.formatter import get_format_icon_svg
+        return get_format_icon_svg(self.format)
+
+    @property
+    def effective_updated_at(self) -> datetime:
+        return self.updated_at or self.created_at
+
+    @property
     def snippet(self) -> str:
         """Return the first few lines of content for preview in lists."""
         lines = [line.strip() for line in self.content.splitlines() if line.strip()]

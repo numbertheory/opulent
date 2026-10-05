@@ -4,6 +4,61 @@ function escapeHtml(text) {
   return div.innerHTML;
 }
 
+// Local Timezone Conversion Helpers
+function parseUtcDate(isoString) {
+  if (!isoString) return null;
+  let str = String(isoString).trim();
+  if (!str.endsWith("Z") && !/[+-]\d{2}:\d{2}$/.test(str)) {
+    str += "Z";
+  }
+  const d = new Date(str);
+  return isNaN(d.getTime()) ? null : d;
+}
+
+window.formatToLocal = function (isoString, includeSeconds = false) {
+  const d = parseUtcDate(isoString);
+  if (!d) return isoString || "";
+
+  const pad = (n) => String(n).padStart(2, "0");
+  const year = d.getFullYear();
+  const month = pad(d.getMonth() + 1);
+  const day = pad(d.getDate());
+  const hours = pad(d.getHours());
+  const mins = pad(d.getMinutes());
+
+  if (includeSeconds) {
+    const secs = pad(d.getSeconds());
+    return `${year}-${month}-${day} ${hours}:${mins}:${secs}`;
+  }
+  return `${year}-${month}-${day} ${hours}:${mins}`;
+};
+
+window.updateLocalTimes = function () {
+  document.querySelectorAll("time.local-time").forEach((el) => {
+    const iso = el.getAttribute("datetime");
+    if (!iso) return;
+    const includeSeconds = el.getAttribute("data-seconds") === "true";
+    const formatted = window.formatToLocal(iso, includeSeconds);
+    if (formatted) {
+      el.textContent = formatted;
+      try {
+        const d = parseUtcDate(iso);
+        if (d) el.title = d.toLocaleString();
+      } catch (e) {}
+    }
+  });
+
+  document.querySelectorAll("option[data-datetime]").forEach((opt) => {
+    const iso = opt.getAttribute("data-datetime");
+    const ver = opt.getAttribute("data-version");
+    if (iso && ver) {
+      const formatted = window.formatToLocal(iso, false);
+      const isCurrent = opt.getAttribute("data-current") === "true";
+      opt.textContent = `v${ver} (${formatted})${isCurrent ? " (Current)" : ""}`;
+    }
+  });
+};
+
 // Global Drawer Controls
 window.openDrawer = async function () {
   const drawer = document.getElementById("docs-drawer");
@@ -42,7 +97,7 @@ window.openDrawer = async function () {
             card.setAttribute("data-format", (item.format || "").toLowerCase());
 
             const formattedDate = item.created_at
-              ? item.created_at.substring(0, 16).replace("T", " ")
+              ? window.formatToLocal(item.created_at)
               : "";
             card.innerHTML = `
               <div class="drawer-doc-top">
@@ -55,12 +110,13 @@ window.openDrawer = async function () {
                 <span>•</span>
                 <span>${item.line_count || 1} lines</span>
                 <span>•</span>
-                <span>${formattedDate}</span>
+                <time class="local-time" datetime="${item.created_at}">${escapeHtml(formattedDate)}</time>
                 ${item.version_count > 1 ? `<span class="badge badge-gold" style="font-size: 0.7rem; padding: 0.1rem 0.35rem;">v${item.version_count}</span>` : ""}
               </div>
             `;
             listContainer.appendChild(card);
           });
+          window.updateLocalTimes();
         }
       }
     } catch (err) {
@@ -211,6 +267,9 @@ if (window.matchMedia) {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
+  // Convert all UTC ISO timestamps to the browser's local timezone
+  window.updateLocalTimes();
+
   // Sync toggle button UI on DOMContentLoaded
   const initialTheme =
     document.documentElement.getAttribute("data-theme") || getCurrentTheme();
