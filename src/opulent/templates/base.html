@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Opulent - Refined Text & Pastebin Service{% endblock %}</title>
+  <link rel="stylesheet" href="/static/css/style.css">
+  <link rel="stylesheet" href="/pygments.css">
+  {% block head %}{% endblock %}
+</head>
+<body>
+  <header class="site-header">
+    <div class="nav-container">
+      <a href="/" class="brand">
+        <div class="brand-gem">◆</div>
+        <span class="brand-title">OPULENT</span>
+        <span class="brand-subtitle">Pastebin</span>
+      </a>
+      <nav class="nav-links">
+        <a href="/" class="nav-link">＋ New Document</a>
+        <a href="/#documents" class="nav-link">Recent</a>
+        <a href="/api/docs-ui" class="nav-link" target="_blank">API Docs</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    {% block content %}{% endblock %}
+  </main>
+
+  <div id="toast" class="toast">Copied to clipboard!</div>
+
+  <footer class="site-footer">
+    <div class="footer-content">
+      <div>
+        <strong>Opulent</strong> — Frictionless pastebin & formatted text documents.
+      </div>
+      <div>
+        REST API available at <code>/api/docs</code> • Formats: Markdown, Code & Plain Text
+      </div>
+    </div>
+  </footer>
+
+  <script src="/static/js/app.js"></script>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

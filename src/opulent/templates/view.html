@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+
+{% block title %}{{ document.title }} - Opulent{% endblock %}
+
+{% block content %}
+  {% if is_duplicate %}
+    <div class="alert alert-duplicate">
+      <span style="font-size: 1.2rem;">⚡</span>
+      <div>
+        <strong>Duplicate Document Recognized:</strong> An identical document already exists in the system. To avoid redundant duplicates, you have been redirected to the original document at this distinct URL.
+      </div>
+    </div>
+  {% endif %}
+
+  <div class="doc-header">
+    <div class="doc-title-row">
+      <div>
+        <h1 class="doc-main-title">{{ document.title }}</h1>
+      </div>
+      <div class="doc-actions">
+        <button
+          type="button"
+          class="btn btn-secondary btn-sm"
+          onclick="copyText(document.getElementById('raw-doc-content').value, 'Document text copied to clipboard!')"
+          title="Copy the full raw document text"
+        >
+          📋 Copy Text
+        </button>
+        <button
+          type="button"
+          class="btn btn-secondary btn-sm"
+          onclick="copyText('{{ full_url }}', 'Document URL copied to clipboard!')"
+          title="Copy the URL of this document"
+        >
+          🔗 Copy URL
+        </button>
+        <a
+          href="{{ raw_url }}"
+          class="btn btn-secondary btn-sm"
+          target="_blank"
+          title="View raw plain text"
+        >
+          📄 Raw
+        </a>
+        <a
+          href="{{ api_url }}"
+          class="btn btn-secondary btn-sm"
+          target="_blank"
+          title="Access JSON via REST API"
+        >
+          ⚡ REST API
+        </a>
+        <a
+          href="/"
+          class="btn btn-primary btn-sm"
+          title="Create a new document"
+        >
+          ＋ New
+        </a>
+      </div>
+    </div>
+
+    <div class="doc-meta-bar">
+      <div class="meta-item">
+        <span class="badge badge-gold">{{ document.display_format }}</span>
+      </div>
+      <div class="meta-item">
+        <span>ID:</span>
+        <code class="doc-id-code">{{ document.doc_id }}</code>
+      </div>
+      <div class="meta-item">
+        <span>Created:</span>
+        <strong>{{ document.created_at.strftime('%b %d, %Y %H:%M UTC') if document.created_at else '' }}</strong>
+      </div>
+      <div class="meta-item">
+        <span>Lines:</span>
+        <strong>{{ document.line_count }}</strong>
+      </div>
+      <div class="meta-item">
+        <span>Words:</span>
+        <strong>{{ document.word_count }}</strong>
+      </div>
+      <div class="meta-item">
+        <span>Chars:</span>
+        <strong>{{ document.character_count }}</strong>
+      </div>
+      <div class="meta-item">
+        <span>Views:</span>
+        <strong>{{ document.views }}</strong>
+      </div>
+    </div>
+  </div>
+
+  <!-- Formatted Document Body -->
+  <div class="doc-content-container">
+    {{ rendered_html | safe }}
+  </div>
+
+  <!-- Hidden raw content for JS clipboard copying -->
+  <textarea id="raw-doc-content" style="display: none;">{{ document.content }}</textarea>
+{% endblock %}

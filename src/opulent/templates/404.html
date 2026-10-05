@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% block title %}Document Not Found - Opulent{% endblock %}
+
+{% block content %}
+  <div class="card" style="max-width: 600px; margin: 4rem auto; text-align: center;">
+    <div class="card-body" style="padding: 3rem 2rem;">
+      <div style="font-size: 3.5rem; margin-bottom: 1rem;">🔍</div>
+      <h1 style="font-size: 1.75rem; margin-bottom: 0.75rem;">Document Not Found</h1>
+      <p style="color: var(--text-muted); margin-bottom: 2rem;">
+        The document with ID <code class="doc-id-code">{{ doc_id }}</code> could not be found. It may have never existed or has been removed.
+      </p>
+      <div style="display: flex; justify-content: center; gap: 1rem;">
+        <a href="/" class="btn btn-primary">Create New Document</a>
+        <a href="/#documents" class="btn btn-secondary">Browse Documents</a>
+      </div>
+    </div>
+  </div>
+{% endblock %}

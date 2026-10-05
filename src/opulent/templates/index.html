@@ -1,0 +1,171 @@
+{% extends "base.html" %}
+
+{% block title %}Opulent - Create & Share Formatted Documents{% endblock %}
+
+{% block content %}
+  {% if error %}
+    <div class="alert alert-error">
+      <span>⚠️</span>
+      <span>{{ error }}</span>
+    </div>
+  {% endif %}
+
+  {% if notice %}
+    <div class="alert alert-info">
+      <span>ℹ️</span>
+      <span>{{ notice }}</span>
+    </div>
+  {% endif %}
+
+  <!-- Document Editor Section -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">
+        <span>✍️</span>
+        <span>Create Document</span>
+      </div>
+      <span class="badge badge-gold">Public Pastebin</span>
+    </div>
+    <div class="card-body">
+      <form id="editor-form" action="/docs" method="post" class="editor-form">
+        <div class="form-row">
+          <div class="form-group" style="flex: 2;">
+            <label for="doc-title" class="form-label">Title</label>
+            <input
+              type="text"
+              id="doc-title"
+              name="title"
+              class="form-input"
+              placeholder="Document Title (e.g. System Architecture Notes, Untitled)"
+              maxlength="255"
+              autofocus
+            />
+          </div>
+          <div class="form-group" style="flex: 1;">
+            <label for="doc-format" class="form-label">Syntax / Format</label>
+            <select id="doc-format" name="format" class="form-select">
+              {% for key, label in formats.items() %}
+                <option value="{{ key }}" {% if key == 'markdown' %}selected{% endif %}>
+                  {{ label }}
+                </option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="doc-content-input" class="form-label">Document Content</label>
+          <textarea
+            id="doc-content-input"
+            name="content"
+            class="form-textarea"
+            placeholder="Write or paste your markdown, code, or plain text here... (Ctrl+Enter to publish)"
+            required
+          ></textarea>
+        </div>
+
+        <div class="editor-footer">
+          <div class="editor-stats">
+            <span id="stat-lines">0 lines</span>
+            <span>•</span>
+            <span id="stat-words">0 words</span>
+            <span>•</span>
+            <span id="stat-chars">0 chars</span>
+          </div>
+
+          <button type="submit" class="btn btn-primary">
+            <span>✨ Publish Document</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Documents List Section -->
+  <div class="section-header" id="documents">
+    <div class="section-title">
+      <span>📚</span>
+      <span>All Documents</span>
+      <span class="badge badge-blue">{{ total }} total</span>
+    </div>
+  </div>
+
+  <div class="card">
+    {% if documents %}
+      <div class="docs-table-wrapper">
+        <table class="docs-table">
+          <thead>
+            <tr>
+              <th>Title & Snippet</th>
+              <th>Format</th>
+              <th>Doc ID</th>
+              <th>Stats</th>
+              <th>Published</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for doc in documents %}
+              <tr>
+                <td>
+                  <a href="/docs/{{ doc.doc_id }}" class="doc-link">
+                    {{ doc.title }}
+                  </a>
+                  {% if doc.snippet %}
+                    <div class="doc-snippet">{{ doc.snippet }}</div>
+                  {% endif %}
+                </td>
+                <td>
+                  <span class="badge">{{ doc.display_format }}</span>
+                </td>
+                <td>
+                  <a href="/docs/{{ doc.doc_id }}" class="doc-id-code">{{ doc.doc_id }}</a>
+                </td>
+                <td style="color: var(--text-muted); font-size: 0.85rem;">
+                  {{ doc.line_count }} lines • {{ doc.word_count }} words
+                </td>
+                <td style="color: var(--text-muted); font-size: 0.85rem; white-space: nowrap;">
+                  {{ doc.created_at.strftime('%Y-%m-%d %H:%M') if doc.created_at else '' }}
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Pagination -->
+      {% if total_pages > 1 %}
+        <div class="pagination" style="padding: 1.25rem 1.5rem;">
+          <div class="pagination-info">
+            Showing page <strong>{{ page }}</strong> of <strong>{{ total_pages }}</strong> ({{ total }} documents)
+          </div>
+          <div class="pagination-controls">
+            {% if page > 1 %}
+              <a href="/?page={{ page - 1 }}#documents" class="btn btn-secondary btn-sm">‹ Previous</a>
+            {% endif %}
+
+            {% for p in range(1, total_pages + 1) %}
+              {% if p == 1 or p == total_pages or (p >= page - 2 and p <= page + 2) %}
+                <a href="/?page={{ p }}#documents" class="page-num {% if p == page %}active{% endif %}">
+                  {{ p }}
+                </a>
+              {% elif p == page - 3 or p == page + 3 %}
+                <span style="color: var(--text-muted); padding: 0 0.25rem;">…</span>
+              {% endif %}
+            {% endfor %}
+
+            {% if page < total_pages %}
+              <a href="/?page={{ page + 1 }}#documents" class="btn btn-secondary btn-sm">Next ›</a>
+            {% endif %}
+          </div>
+        </div>
+      {% endif %}
+
+    {% else %}
+      <div class="empty-state">
+        <div class="empty-state-icon">📄</div>
+        <h3>No documents created yet</h3>
+        <p style="margin-top: 0.5rem;">Be the first to publish a document using the editor above!</p>
+      </div>
+    {% endif %}
+  </div>
+{% endblock %}
