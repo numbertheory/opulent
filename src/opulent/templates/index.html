@@ -107,9 +107,16 @@
             {% for doc in documents %}
               <tr>
                 <td>
-                  <a href="/docs/{{ doc.doc_id }}" class="doc-link">
-                    {{ doc.title }}
-                  </a>
+                  <div style="display: flex; align-items: center; gap: 0.5rem;">
+                    <a href="/docs/{{ doc.doc_id }}" class="doc-link">
+                      {{ doc.title }}
+                    </a>
+                    {% if doc.version_count > 1 %}
+                      <a href="/docs/{{ doc.doc_id }}/history" class="badge badge-gold" title="View revision history">
+                        v{{ doc.current_version }} ({{ doc.version_count }} revs)
+                      </a>
+                    {% endif %}
+                  </div>
                   {% if doc.snippet %}
                     <div class="doc-snippet">{{ doc.snippet }}</div>
                   {% endif %}

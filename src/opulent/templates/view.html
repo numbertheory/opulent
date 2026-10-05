@@ -1,6 +1,9 @@
 {% extends "base.html" %}
 
-{% block title %}{{ document.title }} - Opulent{% endblock %}
+{% block title %}
+  {% if is_historical %}[v{{ viewed_version }}] {% endif %}
+  {{ version_obj.title if is_historical else document.title }} - Opulent
+{% endblock %}
 
 {% block content %}
   {% if is_duplicate %}
@@ -12,12 +15,65 @@
     </div>
   {% endif %}
 
+  {% if is_edited %}
+    <div class="alert alert-info">
+      <span style="font-size: 1.2rem;">✨</span>
+      <div>
+        <strong>Document Updated:</strong> Your edits have been saved as <strong>Version {{ viewed_version }}</strong>. The complete edit history is preserved.
+      </div>
+    </div>
+  {% endif %}
+
+  {% if is_historical %}
+    <div class="alert alert-duplicate" style="background-color: rgba(56, 189, 248, 0.12); border-color: rgba(56, 189, 248, 0.35); color: #bae6fd;">
+      <span style="font-size: 1.2rem;">⚠️</span>
+      <div>
+        <strong>Historical Revision:</strong> You are viewing <strong>Version {{ viewed_version }}</strong> of {{ document.version_count }}.
+        <a href="/docs/{{ document.doc_id }}" style="color: var(--gold-hover); margin-left: 0.5rem; text-decoration: underline;">
+          View Current Version →
+        </a>
+      </div>
+    </div>
+  {% endif %}
+
+  {% if notice %}
+    <div class="alert alert-info">
+      <span>ℹ️</span>
+      <span>{{ notice }}</span>
+    </div>
+  {% endif %}
+
   <div class="doc-header">
     <div class="doc-title-row">
       <div>
-        <h1 class="doc-main-title">{{ document.title }}</h1>
+        <h1 class="doc-main-title">
+          {{ version_obj.title if is_historical else document.title }}
+        </h1>
       </div>
       <div class="doc-actions">
+        <a
+          href="/docs/{{ document.doc_id }}/edit"
+          class="btn btn-primary btn-sm"
+          title="Edit this document"
+        >
+          ✏️ Edit
+        </a>
+        <a
+          href="/docs/{{ document.doc_id }}/history"
+          class="btn btn-secondary btn-sm"
+          title="View document revision history"
+        >
+          📜 History ({{ document.version_count }})
+        </a>
+        {% if document.version_count > 1 %}
+          <a
+            href="/docs/{{ document.doc_id }}/compare"
+            class="btn btn-secondary btn-sm"
+            title="Compare versions"
+          >
+            ⚖️ Diff
+          </a>
+        {% endif %}
         <button
           type="button"
           class="btn btn-secondary btn-sm"
@@ -52,7 +108,7 @@
         </a>
         <a
           href="/"
-          class="btn btn-primary btn-sm"
+          class="btn btn-secondary btn-sm"
           title="Create a new document"
         >
           ＋ New
@@ -62,7 +118,12 @@
 
     <div class="doc-meta-bar">
       <div class="meta-item">
-        <span class="badge badge-gold">{{ document.display_format }}</span>
+        <span class="badge badge-gold">
+          {{ version_obj.display_format if is_historical else document.display_format }}
+        </span>
+      </div>
+      <div class="meta-item">
+        <span class="badge badge-blue">v{{ viewed_version }}</span>
       </div>
       <div class="meta-item">
         <span>ID:</span>
@@ -70,24 +131,32 @@
       </div>
       <div class="meta-item">
         <span>Created:</span>
-        <strong>{{ document.created_at.strftime('%b %d, %Y %H:%M UTC') if document.created_at else '' }}</strong>
+        <strong>
+          {% if is_historical %}
+            {{ version_obj.created_at.strftime('%b %d, %Y %H:%M UTC') if version_obj.created_at else '' }}
+          {% else %}
+            {{ document.created_at.strftime('%b %d, %Y %H:%M UTC') if document.created_at else '' }}
+          {% endif %}
+        </strong>
       </div>
       <div class="meta-item">
         <span>Lines:</span>
-        <strong>{{ document.line_count }}</strong>
+        <strong>{{ version_obj.line_count if is_historical else document.line_count }}</strong>
       </div>
       <div class="meta-item">
         <span>Words:</span>
-        <strong>{{ document.word_count }}</strong>
+        <strong>{{ version_obj.word_count if is_historical else document.word_count }}</strong>
       </div>
       <div class="meta-item">
         <span>Chars:</span>
-        <strong>{{ document.character_count }}</strong>
+        <strong>{{ version_obj.character_count if is_historical else document.character_count }}</strong>
       </div>
-      <div class="meta-item">
-        <span>Views:</span>
-        <strong>{{ document.views }}</strong>
-      </div>
+      {% if not is_historical %}
+        <div class="meta-item">
+          <span>Views:</span>
+          <strong>{{ document.views }}</strong>
+        </div>
+      {% endif %}
     </div>
   </div>
 
@@ -97,5 +166,5 @@
   </div>
 
   <!-- Hidden raw content for JS clipboard copying -->
-  <textarea id="raw-doc-content" style="display: none;">{{ document.content }}</textarea>
+  <textarea id="raw-doc-content" style="display: none;">{{ version_obj.content if is_historical else document.content }}</textarea>
 {% endblock %}

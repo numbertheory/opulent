@@ -1,4 +1,5 @@
 from collections.abc import AsyncGenerator
+from sqlalchemy import text
 from sqlalchemy.ext.asyncio import (
     AsyncEngine,
     AsyncSession,
@@ -27,9 +28,45 @@ AsyncSessionLocal = async_sessionmaker(
 
 
 async def init_db() -> None:
-    """Initialize database tables."""
+    """Initialize database tables and apply lightweight non-destructive migrations."""
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
+
+        # Ensure updated_at column exists on documents table if upgrading from earlier schema
+        try:
+            # PostgreSQL syntax
+            await conn.execute(
+                text(
+                    "ALTER TABLE documents ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP;"
+                )
+            )
+        except Exception:
+            try:
+                # SQLite fallback
+                await conn.execute(
+                    text(
+                        "ALTER TABLE documents ADD COLUMN updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP;"
+                    )
+                )
+            except Exception:
+                pass
+
+        # Backfill version 1 for any legacy documents that don't have version records yet
+        try:
+            await conn.execute(
+                text(
+                    """
+                    INSERT INTO document_versions (document_id, version, title, content, format, content_hash, created_at)
+                    SELECT d.id, 1, d.title, d.content, d.format, d.content_hash, d.created_at
+                    FROM documents d
+                    WHERE NOT EXISTS (
+                        SELECT 1 FROM document_versions dv WHERE dv.document_id = d.id
+                    );
+                    """
+                )
+            )
+        except Exception:
+            pass
 
 
 async def get_db() -> AsyncGenerator[AsyncSession, None]:

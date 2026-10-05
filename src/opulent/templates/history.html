@@ -1,0 +1,156 @@
+{% extends "base.html" %}
+
+{% block title %}Version History: {{ document.title }} - Opulent{% endblock %}
+
+{% block content %}
+  <div class="doc-header">
+    <div class="doc-title-row">
+      <div>
+        <h1 class="doc-main-title">Version History: {{ document.title }}</h1>
+        <div style="margin-top: 0.5rem; color: var(--text-muted); font-size: 0.9rem;">
+          Document ID: <code class="doc-id-code">{{ document.doc_id }}</code> •
+          Total revisions: <strong>{{ versions | length }}</strong>
+        </div>
+      </div>
+      <div class="doc-actions">
+        <a href="/docs/{{ document.doc_id }}" class="btn btn-secondary btn-sm">
+          ← Back to Document
+        </a>
+        <a href="/docs/{{ document.doc_id }}/edit" class="btn btn-primary btn-sm">
+          ✏️ Edit Current
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quick Comparison Tool -->
+  {% if versions | length > 1 %}
+    <div class="card" style="margin-bottom: 2rem;">
+      <div class="card-header">
+        <div class="card-title">
+          <span>⚖️</span>
+          <span>Compare Any Two Versions</span>
+        </div>
+      </div>
+      <div class="card-body">
+        <form action="/docs/{{ document.doc_id }}/compare" method="get" style="display: flex; gap: 1rem; align-items: flex-end; flex-wrap: wrap;">
+          <div class="form-group" style="min-width: 180px;">
+            <label for="v1" class="form-label">Base Version (Older)</label>
+            <select id="v1" name="v1" class="form-select">
+              {% for ver in versions | reverse %}
+                <option value="{{ ver.version }}" {% if ver.version == 1 %}selected{% endif %}>
+                  v{{ ver.version }} ({{ ver.created_at.strftime('%b %d, %H:%M') if ver.created_at else '' }})
+                </option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="form-group" style="min-width: 180px;">
+            <label for="v2" class="form-label">Compare With (Newer)</label>
+            <select id="v2" name="v2" class="form-select">
+              {% for ver in versions %}
+                <option value="{{ ver.version }}" {% if ver.version == document.current_version %}selected{% endif %}>
+                  v{{ ver.version }} {% if ver.version == document.current_version %}(Current){% endif %}
+                </option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <button type="submit" class="btn btn-primary" style="height: 42px;">
+            <span>Compare Versions</span>
+          </button>
+        </form>
+      </div>
+    </div>
+  {% endif %}
+
+  <!-- Versions Timeline -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">
+        <span>📜</span>
+        <span>Revisions Timeline</span>
+      </div>
+      <span class="badge badge-gold">{{ versions | length }} versions recorded</span>
+    </div>
+    <div class="card-body" style="padding: 0;">
+      <div class="docs-table-wrapper">
+        <table class="docs-table">
+          <thead>
+            <tr>
+              <th>Version</th>
+              <th>Date & Time</th>
+              <th>Title & Format</th>
+              <th>Stats</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for ver in versions %}
+              <tr>
+                <td>
+                  <span class="badge {% if ver.version == document.current_version %}badge-gold{% else %}badge-blue{% endif %}">
+                    v{{ ver.version }}
+                  </span>
+                  {% if ver.version == document.current_version %}
+                    <span style="font-size: 0.75rem; color: var(--gold-hover); margin-left: 0.25rem;">(Current)</span>
+                  {% endif %}
+                </td>
+                <td style="color: var(--text-secondary); font-size: 0.85rem; white-space: nowrap;">
+                  {{ ver.created_at.strftime('%Y-%m-%d %H:%M:%S UTC') if ver.created_at else '' }}
+                </td>
+                <td>
+                  <strong>{{ ver.title }}</strong>
+                  <span class="badge" style="margin-left: 0.5rem;">{{ ver.display_format }}</span>
+                  {% if ver.snippet %}
+                    <div class="doc-snippet" style="margin-top: 0.25rem;">{{ ver.snippet }}</div>
+                  {% endif %}
+                </td>
+                <td style="color: var(--text-muted); font-size: 0.85rem; white-space: nowrap;">
+                  {{ ver.line_count }} lines • {{ ver.word_count }} words • {{ ver.character_count }} chars
+                </td>
+                <td>
+                  <div style="display: flex; gap: 0.4rem; flex-wrap: wrap;">
+                    <a
+                      href="/docs/{{ document.doc_id }}/history/{{ ver.version }}"
+                      class="btn btn-secondary btn-sm"
+                      title="View formatted content of this version"
+                    >
+                      View
+                    </a>
+                    <a
+                      href="/docs/{{ document.doc_id }}/history/{{ ver.version }}/raw"
+                      class="btn btn-secondary btn-sm"
+                      target="_blank"
+                      title="View raw plain text of this version"
+                    >
+                      Raw
+                    </a>
+                    {% if ver.version > 1 %}
+                      <a
+                        href="/docs/{{ document.doc_id }}/compare?v1={{ ver.version - 1 }}&v2={{ ver.version }}"
+                        class="btn btn-secondary btn-sm"
+                        title="Compare with previous version"
+                      >
+                        vs v{{ ver.version - 1 }}
+                      </a>
+                    {% endif %}
+                    {% if ver.version < document.current_version %}
+                      <a
+                        href="/docs/{{ document.doc_id }}/compare?v1={{ ver.version }}&v2={{ document.current_version }}"
+                        class="btn btn-secondary btn-sm"
+                        title="Compare with current version"
+                      >
+                        vs Current
+                      </a>
+                    {% endif %}
+                  </div>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+{% endblock %}

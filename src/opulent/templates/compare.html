@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+
+{% block title %}Compare v{{ v1 }} vs v{{ v2 }} - {{ document.title }} - Opulent{% endblock %}
+
+{% block content %}
+  <div class="doc-header">
+    <div class="doc-title-row">
+      <div>
+        <h1 class="doc-main-title">Compare Versions: {{ document.title }}</h1>
+        <div style="margin-top: 0.5rem; color: var(--text-muted); font-size: 0.9rem;">
+          Comparing <strong>Version {{ v1 }}</strong> ({{ ver1.created_at.strftime('%Y-%m-%d %H:%M') if ver1.created_at else '' }})
+          with <strong>Version {{ v2 }}</strong> ({{ ver2.created_at.strftime('%Y-%m-%d %H:%M') if ver2.created_at else '' }})
+        </div>
+      </div>
+      <div class="doc-actions">
+        <a href="/docs/{{ document.doc_id }}/history" class="btn btn-secondary btn-sm">
+          📜 Full History
+        </a>
+        <a href="/docs/{{ document.doc_id }}" class="btn btn-primary btn-sm">
+          ← Back to Document
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Version Selector -->
+  <div class="card" style="margin-bottom: 1.5rem;">
+    <div class="card-body" style="padding: 1.25rem 1.5rem;">
+      <form action="/docs/{{ document.doc_id }}/compare" method="get" style="display: flex; gap: 1rem; align-items: flex-end; flex-wrap: wrap;">
+        <div class="form-group" style="min-width: 180px;">
+          <label for="v1" class="form-label">Base Version (Older)</label>
+          <select id="v1" name="v1" class="form-select">
+            {% for ver in versions | reverse %}
+              <option value="{{ ver.version }}" {% if ver.version == v1 %}selected{% endif %}>
+                v{{ ver.version }} ({{ ver.created_at.strftime('%b %d, %H:%M') if ver.created_at else '' }})
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="form-group" style="min-width: 180px;">
+          <label for="v2" class="form-label">Compare With (Newer)</label>
+          <select id="v2" name="v2" class="form-select">
+            {% for ver in versions %}
+              <option value="{{ ver.version }}" {% if ver.version == v2 %}selected{% endif %}>
+                v{{ ver.version }} {% if ver.version == document.current_version %}(Current){% endif %}
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <button type="submit" class="btn btn-secondary" style="height: 42px;">
+          <span>Update Diff</span>
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Differences Summary Header -->
+  <div class="card" style="margin-bottom: 1.5rem;">
+    <div class="card-header">
+      <div class="card-title">
+        <span>📊</span>
+        <span>Summary of Changes</span>
+      </div>
+      <div style="display: flex; gap: 0.5rem;">
+        <span class="badge" style="background-color: rgba(52, 211, 153, 0.2); color: var(--accent-emerald); border-color: rgba(52, 211, 153, 0.4);">
+          +{{ diff.additions }} additions
+        </span>
+        <span class="badge" style="background-color: rgba(244, 63, 94, 0.2); color: var(--accent-rose); border-color: rgba(244, 63, 94, 0.4);">
+          -{{ diff.deletions }} deletions
+        </span>
+      </div>
+    </div>
+    <div class="card-body">
+      {% if diff.title_v1 != diff.title_v2 %}
+        <div style="margin-bottom: 0.75rem; font-size: 0.9rem;">
+          <strong>Title modified:</strong>
+          <span style="color: var(--accent-rose); text-decoration: line-through; margin-right: 0.5rem;">{{ diff.title_v1 }}</span>
+          <span>→</span>
+          <span style="color: var(--accent-emerald); margin-left: 0.5rem;">{{ diff.title_v2 }}</span>
+        </div>
+      {% endif %}
+
+      {% if diff.format_v1 != diff.format_v2 %}
+        <div style="font-size: 0.9rem;">
+          <strong>Format modified:</strong>
+          <span class="badge" style="margin: 0 0.5rem;">{{ diff.format_v1 }}</span>
+          <span>→</span>
+          <span class="badge badge-gold" style="margin-left: 0.5rem;">{{ diff.format_v2 }}</span>
+        </div>
+      {% endif %}
+
+      {% if not diff.has_changes %}
+        <div style="color: var(--text-muted); font-size: 0.95rem;">
+          No differences found between Version {{ v1 }} and Version {{ v2 }}.
+        </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Diff Visual Container -->
+  <div class="doc-content-container" style="padding: 0; overflow-x: auto;">
+    {{ diff_html | safe }}
+  </div>
+{% endblock %}
