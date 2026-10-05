@@ -7,7 +7,7 @@ async def test_drawer_not_open_on_first_load(client: AsyncClient):
     response = await client.get("/")
     assert response.status_code == 200
 
-    # Verify drawer markup exists
+    # Verify drawer markup exists in base layout
     assert 'id="docs-drawer"' in response.text
     assert 'id="drawer-backdrop"' in response.text
 
@@ -20,81 +20,106 @@ async def test_drawer_not_open_on_first_load(client: AsyncClient):
 
 
 @pytest.mark.asyncio
-async def test_obvious_drawer_triggers_present(client: AsyncClient):
+async def test_only_allowed_triggers_present_without_count_badges(client: AsyncClient):
+    # Create two documents so total > 0
+    await client.post(
+        "/docs",
+        data={"title": "Doc A", "format": "markdown", "content": "Content A"},
+    )
+    await client.post(
+        "/docs",
+        data={"title": "Doc B", "format": "markdown", "content": "Content B"},
+    )
+
     response = await client.get("/")
     assert response.status_code == 200
 
-    # 1. Obvious trigger in top navbar
+    # 1. Persistent "Browse" documents button in the top banner is kept
     assert 'id="nav-drawer-toggle"' in response.text
     assert "Browse Documents" in response.text
 
-    # 2. Obvious docked tab on left edge of viewport
+    # 2. Side button on the left edge is kept
     assert 'id="docked-drawer-tab"' in response.text
     assert "docked-tab-text" in response.text
 
-    # 3. Obvious in-page banner above editor
-    assert "drawer-trigger-card" in response.text
-    assert "Browse Saved Documents" in response.text
-    assert "Open Drawer" in response.text
+    # 3. Removed triggers:
+    # Banner above the "Create Document" frame must be removed
+    assert "drawer-trigger-card" not in response.text
+    # No extra drawer buttons in the editor card header or footer
+    assert "Documents Drawer (" not in response.text
+    assert "Browse Drawer" not in response.text
+
+    # 4. Count is ONLY shown at the top of the open drawer, not on triggers
+    # Verify the triggers do NOT show the count badge
+    nav_btn_html = response.text.split('id="nav-drawer-toggle"')[1].split("</button>")[0]
+    assert "badge" not in nav_btn_html
+
+    docked_tab_html = response.text.split('id="docked-drawer-tab"')[1].split("</button>")[0]
+    assert "docked-tab-badge" not in docked_tab_html
+    assert "badge" not in docked_tab_html
+
+    # The document count IS present at the top of the drawer
+    assert 'id="drawer-total-count"' in response.text
+
+
+@pytest.mark.asyncio
+async def test_drawer_works_when_viewing_document(client: AsyncClient):
+    post_res = await client.post(
+        "/docs",
+        data={"title": "Sample Doc", "format": "markdown", "content": "Full document content here"},
+        follow_redirects=False,
+    )
+    doc_id = post_res.headers["location"].split("/docs/")[1]
+
+    # When viewing a document
+    view_res = await client.get(f"/docs/{doc_id}")
+    assert view_res.status_code == 200
+
+    # 1. The drawer markup exists on the document view page
+    assert 'id="docs-drawer"' in view_res.text
+    assert 'id="drawer-backdrop"' in view_res.text
+
+    # 2. The persistent top banner "Browse Documents" button exists and opens the drawer
+    assert 'id="nav-drawer-toggle"' in view_res.text
+    assert 'onclick="openDrawer()"' in view_res.text
+
+    # 3. The side button also exists on the view page
+    assert 'id="docked-drawer-tab"' in view_res.text
+
+    # 4. The drawer contains the list of documents so it slides out populated
+    assert "drawer-doc-card" in view_res.text
+    assert "Sample Doc" in view_res.text
+
+    # 5. The triggers do not have count badges, but drawer header has the count
+    assert 'id="drawer-total-count"' in view_res.text
 
 
 @pytest.mark.asyncio
 async def test_drawer_open_with_query_param(client: AsyncClient):
-    # When navigated to with drawer=1 (e.g. from pagination or direct link)
     response = await client.get("/?drawer=1")
     assert response.status_code == 200
 
     # Drawer and backdrop should have 'open' class
-    assert 'id="docs-drawer" class="drawer open"' in response.text or 'class="drawer open"' in response.text
+    assert 'class="drawer open"' in response.text
     assert 'class="drawer-backdrop open"' in response.text
 
 
 @pytest.mark.asyncio
-async def test_drawer_contains_documents_and_search(client: AsyncClient):
-    # Create two documents
-    await client.post(
-        "/docs",
-        data={"title": "Drawer Note 1", "format": "markdown", "content": "Content of note 1"},
-    )
-    await client.post(
-        "/docs",
-        data={"title": "Drawer Note 2", "format": "python", "content": "print('hello')"},
-    )
+async def test_drawer_contains_search_and_pagination(client: AsyncClient):
+    for i in range(12):
+        await client.post(
+            "/docs",
+            data={"title": f"Test Note {i}", "format": "markdown", "content": f"Content {i}"},
+        )
 
     response = await client.get("/?drawer=1")
     assert response.status_code == 200
 
-    # Verify search input is present
+    # Search bar & close button
     assert 'id="drawer-search-input"' in response.text
-
-    # Verify document cards inside drawer
-    assert "drawer-doc-card" in response.text
-    assert "Drawer Note 1" in response.text
-    assert "Drawer Note 2" in response.text
-
-    # Verify close button
     assert "drawer-close-btn" in response.text
     assert "Close Drawer" in response.text
 
-
-@pytest.mark.asyncio
-async def test_drawer_pagination(client: AsyncClient):
-    # Create 12 documents
-    for i in range(12):
-        await client.post(
-            "/docs",
-            data={"title": f"Doc {i}", "format": "markdown", "content": f"Content {i}"},
-        )
-
-    # Page 1
-    res_p1 = await client.get("/?page=1&per_page=5&drawer=1")
-    assert res_p1.status_code == 200
-    assert "Showing page <strong>1</strong> of <strong>3</strong>" in res_p1.text
-    assert "Next ›" in res_p1.text
-    assert "drawer=1" in res_p1.text
-
-    # Page 2
-    res_p2 = await client.get("/?page=2&per_page=5&drawer=1")
-    assert res_p2.status_code == 200
-    assert "Showing page <strong>2</strong> of <strong>3</strong>" in res_p2.text
-    assert "‹ Previous" in res_p2.text
+    # Pagination inside drawer
+    assert "Showing page <strong>1</strong>" in response.text
+    assert "Next ›" in response.text

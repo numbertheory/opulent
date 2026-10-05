@@ -118,6 +118,9 @@ async def view_document(
             status_code=status.HTTP_404_NOT_FOUND,
         )
 
+    # Fetch documents for the collapsible drawer so it can be revealed while viewing a document
+    docs, total, total_pages = await list_documents(db=db, page=1, per_page=15)
+
     rendered_html = render_document_html(doc.content, doc.format)
 
     base = str(request.base_url).rstrip("/")
@@ -139,8 +142,13 @@ async def view_document(
             "notice": notice,
             "is_historical": False,
             "viewed_version": doc.current_version,
+            "documents": docs,
+            "total": total,
+            "total_pages": total_pages,
+            "page": 1,
         },
     )
+
 
 
 @router.get("/docs/{doc_id}/edit", response_class=HTMLResponse)
@@ -162,6 +170,8 @@ async def edit_document_page(
             status_code=status.HTTP_404_NOT_FOUND,
         )
 
+    docs, total, total_pages = await list_documents(db=db, page=1, per_page=15)
+
     return templates.TemplateResponse(
         request=request,
         name="edit.html",
@@ -169,6 +179,10 @@ async def edit_document_page(
             "document": doc,
             "formats": SUPPORTED_FORMATS,
             "error": error,
+            "documents": docs,
+            "total": total,
+            "total_pages": total_pages,
+            "page": 1,
         },
     )
 
@@ -239,6 +253,7 @@ async def document_history(
         )
 
     versions = await get_document_versions(db=db, doc_id=doc_id)
+    docs, total, total_pages = await list_documents(db=db, page=1, per_page=15)
 
     return templates.TemplateResponse(
         request=request,
@@ -246,8 +261,13 @@ async def document_history(
         context={
             "document": doc,
             "versions": versions,
+            "documents": docs,
+            "total": total,
+            "total_pages": total_pages,
+            "page": 1,
         },
     )
+
 
 
 @router.get("/docs/{doc_id}/history/{version}", response_class=HTMLResponse)
@@ -269,6 +289,7 @@ async def view_historical_version(
             status_code=status.HTTP_404_NOT_FOUND,
         )
 
+    docs, total, total_pages = await list_documents(db=db, page=1, per_page=15)
     rendered_html = render_document_html(ver.content, ver.format)
 
     base = str(request.base_url).rstrip("/")
@@ -290,8 +311,13 @@ async def view_historical_version(
             "is_edited": False,
             "is_historical": True,
             "viewed_version": ver.version,
+            "documents": docs,
+            "total": total,
+            "total_pages": total_pages,
+            "page": 1,
         },
     )
+
 
 
 @router.get("/docs/{doc_id}/history/{version}/raw", response_class=PlainTextResponse)
@@ -368,6 +394,7 @@ async def compare_document_versions(
     )
 
     diff_html = render_diff_html(diff_result)
+    docs, total, total_pages = await list_documents(db=db, page=1, per_page=15)
 
     return templates.TemplateResponse(
         request=request,
@@ -381,8 +408,13 @@ async def compare_document_versions(
             "v2": v2,
             "diff": diff_result,
             "diff_html": diff_html,
+            "documents": docs,
+            "total": total,
+            "total_pages": total_pages,
+            "page": 1,
         },
     )
+
 
 
 @router.get("/docs/{doc_id}/raw", response_class=PlainTextResponse)

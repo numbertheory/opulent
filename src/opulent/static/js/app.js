@@ -1,5 +1,11 @@
+function escapeHtml(text) {
+  const div = document.createElement("div");
+  div.textContent = text;
+  return div.innerHTML;
+}
+
 // Global Drawer Controls
-window.openDrawer = function () {
+window.openDrawer = async function () {
   const drawer = document.getElementById("docs-drawer");
   const backdrop = document.getElementById("drawer-backdrop");
   if (drawer) drawer.classList.add("open");
@@ -11,6 +17,56 @@ window.openDrawer = function () {
     const searchInput = document.getElementById("drawer-search-input");
     if (searchInput) searchInput.focus();
   }, 150);
+
+  // If list container has no items, dynamically fetch from /api/docs
+  const listContainer = document.getElementById("drawer-doc-list");
+  if (listContainer && listContainer.children.length === 0) {
+    try {
+      const res = await fetch("/api/docs?page=1&per_page=15");
+      if (res.ok) {
+        const data = await res.json();
+        const countBadge = document.getElementById("drawer-total-count");
+        if (countBadge) {
+          countBadge.textContent = data.total;
+          countBadge.style.display = "";
+        }
+        if (data.items && data.items.length > 0) {
+          const emptyState = document.getElementById("drawer-empty-state");
+          if (emptyState) emptyState.style.display = "none";
+          listContainer.innerHTML = "";
+          data.items.forEach((item) => {
+            const card = document.createElement("div");
+            card.className = "drawer-doc-card";
+            card.setAttribute("data-title", (item.title || "").toLowerCase());
+            card.setAttribute("data-id", (item.id || "").toLowerCase());
+            card.setAttribute("data-format", (item.format || "").toLowerCase());
+
+            const formattedDate = item.created_at
+              ? item.created_at.substring(0, 16).replace("T", " ")
+              : "";
+            card.innerHTML = `
+              <div class="drawer-doc-top">
+                <a href="${item.url}" class="drawer-doc-title">${escapeHtml(item.title || "Untitled")}</a>
+                <span class="badge">${escapeHtml(item.display_format || item.format)}</span>
+              </div>
+              ${item.snippet ? `<div class="doc-snippet" style="margin: 0.35rem 0;">${escapeHtml(item.snippet)}</div>` : ""}
+              <div class="drawer-doc-meta">
+                <a href="${item.url}" class="doc-id-code">${escapeHtml(item.id)}</a>
+                <span>•</span>
+                <span>${item.line_count || 1} lines</span>
+                <span>•</span>
+                <span>${formattedDate}</span>
+                ${item.version_count > 1 ? `<span class="badge badge-gold" style="font-size: 0.7rem; padding: 0.1rem 0.35rem;">v${item.version_count}</span>` : ""}
+              </div>
+            `;
+            listContainer.appendChild(card);
+          });
+        }
+      }
+    } catch (err) {
+      console.error("Failed to load documents into drawer:", err);
+    }
+  }
 };
 
 window.closeDrawer = function () {
