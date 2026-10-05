@@ -35,10 +35,11 @@ async def index(
     per_page: int = Query(default=10, ge=1, le=50),
     error: str | None = None,
     notice: str | None = None,
+    drawer: int | None = None,
     db: AsyncSession = Depends(get_db),
 ):
     """
-    Main page: display pastebin editor and paginated list of documents.
+    Main page: display pastebin editor with documents in collapsible left drawer.
     """
     documents, total, total_pages = await list_documents(
         db=db, page=page, per_page=per_page
@@ -56,8 +57,10 @@ async def index(
             "formats": SUPPORTED_FORMATS,
             "error": error,
             "notice": notice,
+            "open_drawer": bool(drawer),
         },
     )
+
 
 
 @router.post("/docs")

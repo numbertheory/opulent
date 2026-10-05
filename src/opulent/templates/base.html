@@ -18,9 +18,21 @@
       </a>
       <nav class="nav-links">
         <a href="/" class="nav-link">＋ New Document</a>
-        <a href="/#documents" class="nav-link">Recent</a>
+        <button
+          type="button"
+          id="nav-drawer-toggle"
+          class="btn btn-secondary btn-sm nav-drawer-btn"
+          onclick="if (typeof openDrawer === 'function') { openDrawer(); } else { window.location.href = '/?drawer=1'; }"
+          title="Browse documents in the collapsible drawer"
+        >
+          <span>📂 Browse Documents</span>
+          {% if total is defined and total > 0 %}
+            <span class="badge badge-gold" style="margin-left: 0.25rem;">{{ total }}</span>
+          {% endif %}
+        </button>
         <a href="/api/docs-ui" class="nav-link" target="_blank">API Docs</a>
       </nav>
+
     </div>
   </header>
 

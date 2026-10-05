@@ -17,14 +17,67 @@
     </div>
   {% endif %}
 
-  <!-- Document Editor Section -->
+  <!-- Docked Left-Hand Tab: Obvious Visual Hint on Viewport Edge -->
+  <button
+    type="button"
+    id="docked-drawer-tab"
+    class="docked-drawer-tab"
+    onclick="openDrawer()"
+    title="Open documents drawer (Shortcut: Press D)"
+    aria-label="Open documents drawer"
+  >
+    <span class="docked-tab-icon">📂</span>
+    <span class="docked-tab-text">Documents</span>
+    <span class="badge badge-gold docked-tab-badge">{{ total }}</span>
+  </button>
+
+  <!-- Obvious Drawer Trigger Banner directly above editor -->
+  <div
+    class="drawer-trigger-card"
+    onclick="openDrawer()"
+    role="button"
+    tabindex="0"
+    title="Click to reveal documents drawer"
+  >
+    <div class="drawer-trigger-left">
+      <div class="drawer-trigger-icon">📂</div>
+      <div>
+        <div class="drawer-trigger-title">Browse Saved Documents</div>
+        <div class="drawer-trigger-desc">
+          Click here to pop out the side drawer and view all <strong>{{ total }}</strong> saved documents
+        </div>
+      </div>
+    </div>
+    <div class="drawer-trigger-action">
+      <span class="badge badge-gold">{{ total }} files</span>
+      <button
+        type="button"
+        class="btn btn-secondary btn-sm"
+        onclick="event.stopPropagation(); openDrawer();"
+      >
+        <span>Open Drawer ➔</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Document Editor Section (Clean and focused on main page) -->
   <div class="card">
     <div class="card-header">
       <div class="card-title">
         <span>✍️</span>
         <span>Create Document</span>
       </div>
-      <span class="badge badge-gold">Public Pastebin</span>
+      <div style="display: flex; gap: 0.5rem; align-items: center;">
+        <button
+          type="button"
+          class="btn btn-secondary btn-sm"
+          onclick="openDrawer()"
+          title="Browse existing documents"
+        >
+          📂 Documents Drawer ({{ total }})
+        </button>
+        <span class="badge badge-gold">Public Pastebin</span>
+      </div>
     </div>
     <div class="card-body">
       <form id="editor-form" action="/docs" method="post" class="editor-form">
@@ -73,106 +126,154 @@
             <span id="stat-chars">0 chars</span>
           </div>
 
-          <button type="submit" class="btn btn-primary">
-            <span>✨ Publish Document</span>
-          </button>
+          <div style="display: flex; gap: 0.75rem;">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              onclick="openDrawer()"
+              title="Reveal saved documents in the drawer"
+            >
+              <span>📂 Browse Drawer</span>
+            </button>
+            <button type="submit" class="btn btn-primary">
+              <span>✨ Publish Document</span>
+            </button>
+          </div>
         </div>
       </form>
     </div>
   </div>
 
-  <!-- Documents List Section -->
-  <div class="section-header" id="documents">
-    <div class="section-title">
-      <span>📚</span>
-      <span>All Documents</span>
-      <span class="badge badge-blue">{{ total }} total</span>
-    </div>
-  </div>
+  <!-- Backdrop Overlay for Drawer -->
+  <div
+    id="drawer-backdrop"
+    class="drawer-backdrop {% if open_drawer %}open{% endif %}"
+    onclick="closeDrawer()"
+  ></div>
 
-  <div class="card">
-    {% if documents %}
-      <div class="docs-table-wrapper">
-        <table class="docs-table">
-          <thead>
-            <tr>
-              <th>Title & Snippet</th>
-              <th>Format</th>
-              <th>Doc ID</th>
-              <th>Stats</th>
-              <th>Published</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for doc in documents %}
-              <tr>
-                <td>
-                  <div style="display: flex; align-items: center; gap: 0.5rem;">
-                    <a href="/docs/{{ doc.doc_id }}" class="doc-link">
-                      {{ doc.title }}
-                    </a>
-                    {% if doc.version_count > 1 %}
-                      <a href="/docs/{{ doc.doc_id }}/history" class="badge badge-gold" title="View revision history">
-                        v{{ doc.current_version }} ({{ doc.version_count }} revs)
-                      </a>
-                    {% endif %}
-                  </div>
-                  {% if doc.snippet %}
-                    <div class="doc-snippet">{{ doc.snippet }}</div>
-                  {% endif %}
-                </td>
-                <td>
-                  <span class="badge">{{ doc.display_format }}</span>
-                </td>
-                <td>
-                  <a href="/docs/{{ doc.doc_id }}" class="doc-id-code">{{ doc.doc_id }}</a>
-                </td>
-                <td style="color: var(--text-muted); font-size: 0.85rem;">
-                  {{ doc.line_count }} lines • {{ doc.word_count }} words
-                </td>
-                <td style="color: var(--text-muted); font-size: 0.85rem; white-space: nowrap;">
-                  {{ doc.created_at.strftime('%Y-%m-%d %H:%M') if doc.created_at else '' }}
-                </td>
-              </tr>
-            {% endfor %}
-          </tbody>
-        </table>
+  <!-- Collapsible Left Drawer (Hidden on first load) -->
+  <aside
+    id="docs-drawer"
+    class="drawer {% if open_drawer %}open{% endif %}"
+    aria-label="Documents Drawer"
+  >
+    <div class="drawer-header">
+      <div class="drawer-header-title">
+        <span>📚</span>
+        <span>Documents Drawer</span>
+        <span class="badge badge-blue">{{ total }}</span>
       </div>
+      <button
+        type="button"
+        class="drawer-close-btn"
+        onclick="closeDrawer()"
+        title="Close drawer (Esc)"
+        aria-label="Close drawer"
+      >
+        ✕
+      </button>
+    </div>
 
-      <!-- Pagination -->
-      {% if total_pages > 1 %}
-        <div class="pagination" style="padding: 1.25rem 1.5rem;">
-          <div class="pagination-info">
-            Showing page <strong>{{ page }}</strong> of <strong>{{ total_pages }}</strong> ({{ total }} documents)
-          </div>
-          <div class="pagination-controls">
-            {% if page > 1 %}
-              <a href="/?page={{ page - 1 }}#documents" class="btn btn-secondary btn-sm">‹ Previous</a>
-            {% endif %}
+    <!-- Quick Search / Filter in Drawer -->
+    <div class="drawer-search-bar">
+      <input
+        type="text"
+        id="drawer-search-input"
+        class="form-input"
+        placeholder="Filter documents in drawer..."
+        oninput="filterDrawerDocuments(this.value)"
+        aria-label="Filter documents in drawer"
+      />
+    </div>
 
-            {% for p in range(1, total_pages + 1) %}
-              {% if p == 1 or p == total_pages or (p >= page - 2 and p <= page + 2) %}
-                <a href="/?page={{ p }}#documents" class="page-num {% if p == page %}active{% endif %}">
-                  {{ p }}
+    <!-- Drawer Content / Document Items -->
+    <div class="drawer-content">
+      {% if documents %}
+        <div class="drawer-doc-list" id="drawer-doc-list">
+          {% for doc in documents %}
+            <div
+              class="drawer-doc-card"
+              data-title="{{ doc.title | lower }}"
+              data-id="{{ doc.doc_id | lower }}"
+              data-format="{{ doc.format | lower }}"
+            >
+              <div class="drawer-doc-top">
+                <a href="/docs/{{ doc.doc_id }}" class="drawer-doc-title">
+                  {{ doc.title }}
                 </a>
-              {% elif p == page - 3 or p == page + 3 %}
-                <span style="color: var(--text-muted); padding: 0 0.25rem;">…</span>
+                <span class="badge">{{ doc.display_format }}</span>
+              </div>
+              {% if doc.snippet %}
+                <div class="doc-snippet" style="margin: 0.35rem 0;">{{ doc.snippet }}</div>
               {% endif %}
-            {% endfor %}
+              <div class="drawer-doc-meta">
+                <a href="/docs/{{ doc.doc_id }}" class="doc-id-code">{{ doc.doc_id }}</a>
+                <span>•</span>
+                <span>{{ doc.line_count }} lines</span>
+                <span>•</span>
+                <span>{{ doc.created_at.strftime('%Y-%m-%d %H:%M') if doc.created_at else '' }}</span>
+                {% if doc.version_count > 1 %}
+                  <span class="badge badge-gold" style="font-size: 0.7rem; padding: 0.1rem 0.35rem;">
+                    v{{ doc.current_version }}
+                  </span>
+                {% endif %}
+              </div>
+            </div>
+          {% endfor %}
+        </div>
 
-            {% if page < total_pages %}
-              <a href="/?page={{ page + 1 }}#documents" class="btn btn-secondary btn-sm">Next ›</a>
-            {% endif %}
+        <!-- Pagination inside Drawer -->
+        {% if total_pages > 1 %}
+          <div class="pagination" style="padding: 1.25rem 0.5rem 0.5rem 0.5rem;">
+            <div class="pagination-info" style="font-size: 0.8rem;">
+              Showing page <strong>{{ page }}</strong> of <strong>{{ total_pages }}</strong> ({{ total }} documents)
+            </div>
+            <div class="pagination-controls">
+              {% if page > 1 %}
+                <a href="/?page={{ page - 1 }}&drawer=1" class="btn btn-secondary btn-sm">‹ Previous</a>
+              {% endif %}
+
+              {% for p in range(1, total_pages + 1) %}
+                {% if p == 1 or p == total_pages or (p >= page - 2 and p <= page + 2) %}
+                  <a
+                    href="/?page={{ p }}&drawer=1"
+                    class="page-num {% if p == page %}active{% endif %}"
+                    style="width: 28px; height: 28px; font-size: 0.75rem;"
+                  >
+                    {{ p }}
+                  </a>
+                {% elif p == page - 3 or p == page + 3 %}
+                  <span style="color: var(--text-muted); padding: 0 0.15rem;">…</span>
+                {% endif %}
+              {% endfor %}
+
+              {% if page < total_pages %}
+                <a href="/?page={{ page + 1 }}&drawer=1" class="btn btn-secondary btn-sm">Next ›</a>
+              {% endif %}
+            </div>
           </div>
+        {% endif %}
+
+      {% else %}
+        <div class="empty-state" style="padding: 2.5rem 1rem;">
+          <div class="empty-state-icon">📄</div>
+          <h3>No documents created yet</h3>
+          <p style="margin-top: 0.5rem; font-size: 0.9rem;">
+            Be the first to publish a document using the editor!
+          </p>
         </div>
       {% endif %}
+    </div>
 
-    {% else %}
-      <div class="empty-state">
-        <div class="empty-state-icon">📄</div>
-        <h3>No documents created yet</h3>
-        <p style="margin-top: 0.5rem;">Be the first to publish a document using the editor above!</p>
-      </div>
-    {% endif %}
-  </div>
+    <div class="drawer-footer">
+      <button
+        type="button"
+        class="btn btn-secondary btn-sm"
+        style="width: 100%;"
+        onclick="closeDrawer()"
+      >
+        ✕ Close Drawer (Esc)
+      </button>
+    </div>
+  </aside>
 {% endblock %}

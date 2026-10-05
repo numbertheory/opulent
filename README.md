@@ -168,13 +168,32 @@ docker compose down
 
 | URL | Description |
 | :--- | :--- |
-| `http://localhost:8000/` | Main site: Editor & paginated list of documents |
+| `http://localhost:8000/` | Main site: Editor with collapsible left-side slide-out documents drawer |
+| `http://localhost:8000/?drawer=1` | Main site with left documents drawer opened by default |
 | `http://localhost:8000/docs/<doc-id>` | View formatted document (with Edit, History & Diff buttons) |
 | `http://localhost:8000/docs/<doc-id>/edit` | In-browser editor to save modifications and publish a new version |
 | `http://localhost:8000/docs/<doc-id>/history` | Full revision timeline of all document versions |
 | `http://localhost:8000/docs/<doc-id>/history/<version>` | View a specific historical version with banner notice |
 | `http://localhost:8000/docs/<doc-id>/compare?v1=1&v2=2` | Visual diff comparison highlighting additions & deletions |
 | `http://localhost:8000/docs/<doc-id>/raw` | Stream raw plain text directly |
+
+---
+
+### Collapsible Documents Drawer
+To keep the main page interface clean and distraction-free, existing documents are housed in a collapsible slide-out drawer on the left side of the screen rather than being rendered inline by default.
+
+The drawer can be opened in any of three obvious ways:
+1. **Top Navbar Button**: `[ 📂 Browse Documents (N) ]` with document counter badge.
+2. **Docked Left Tab**: A vertical folder tab fixed to the left edge of the viewport.
+3. **Banner Card**: A dedicated reveal card positioned directly above the pastebin editor.
+4. **Keyboard Shortcut**: Press `D` (when not actively typing in an input or textarea) to toggle the drawer. Press `Escape` to close.
+
+Inside the drawer:
+- Live search/filtering by document title, format, or doc-id.
+- Revision badges (`v2`, `v3`...) for edited notes.
+- Snippet previews, line counts, and creation timestamps.
+- Pagination controls (`‹ Previous`, `Next ›`) preserved within the drawer.
+
 
 ---
 
