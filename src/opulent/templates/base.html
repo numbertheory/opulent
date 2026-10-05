@@ -151,7 +151,7 @@
                 <span>•</span>
                 <span>{{ doc.line_count }} lines</span>
                 <span>•</span>
-                <time class="local-time" datetime="{{ doc.created_at | iso_utc if doc.created_at else '' }}">{{ doc.created_at.strftime('%Y-%m-%d %H:%M') if doc.created_at else '' }}</time>
+                <time class="local-time" datetime="{{ doc.created_at | iso_utc if doc.created_at else '' }}">{{ doc.created_at | datetime_12h }}</time>
                 {% if doc.version_count > 1 %}
                   <span class="badge badge-gold" style="font-size: 0.7rem; padding: 0.1rem 0.35rem;">
                     v{{ doc.current_version }}

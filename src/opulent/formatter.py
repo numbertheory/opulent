@@ -179,6 +179,23 @@ def to_iso_utc(dt: datetime | None) -> str:
     return dt.isoformat()
 
 
+def format_datetime_12h(dt: datetime | None, include_seconds: bool = False) -> str:
+    """
+    Format a datetime in 12-hour format: YYYY-MM-DD h:mm[am|pm], e.g. 2026-10-05 1:19pm.
+    No leading zero on the hour, leading zero on the minute, lowercase am/pm directly adjacent.
+    """
+    if not dt:
+        return ""
+    hour = str(int(dt.strftime("%I")))
+    mins = dt.strftime("%M")
+    ampm = dt.strftime("%p").lower()
+    date_str = dt.strftime("%Y-%m-%d")
+    if include_seconds:
+        secs = dt.strftime("%S")
+        return f"{date_str} {hour}:{mins}:{secs}{ampm}"
+    return f"{date_str} {hour}:{mins}{ampm}"
+
+
 FORMAT_ICONS_SVG: dict[str, str] = {
     "markdown": (
         '<svg class="format-icon format-icon-markdown" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-label="Markdown">'
@@ -191,11 +208,10 @@ FORMAT_ICONS_SVG: dict[str, str] = {
         '</svg>'
     ),
     "python": (
-        '<svg class="format-icon format-icon-python" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#eab308" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-label="Python">'
-        '<path d="M12 2c-4 0-4 1.8-4 1.8v1.8h4v.6H6.5S3 6.2 3 9.8s3.1 3.4 3.1 3.4h1.1v-1.6s-.1-1.9 1.9-1.9h4.7v-.5H9s-.6-.6-.6-1.5c0-.8.7-1.5 1.5-1.5h5.3s1.4 0 1.4 1.4v2.8h-4.6v.5h4.6s2.4 0 2.4-3.1-2-5.3-7-5.3z" fill="rgba(56,189,248,0.2)"/>'
-        '<circle cx="9.5" cy="4.5" r=".75" fill="#38bdf8"/>'
-        '<path d="M12 22c4 0 4-1.8 4-1.8v-1.8h-4v-.6h5.5s3.5 0 3.5-3.6-3.1-3.4-3.1-3.4h-1.1v1.6s.1 1.9-1.9 1.9H10.2v.5h4.8s.6.6.6 1.5c0 .8-.7 1.5-1.5 1.5H8.8s-1.4 0-1.4-1.4v-2.8h4.6v-.5H7.4s-2.4 0-2.4 3.1 2 5.3 7 5.3z" fill="rgba(234,179,8,0.2)"/>'
-        '<circle cx="14.5" cy="19.5" r=".75" fill="#eab308"/>'
+        '<svg class="format-icon format-icon-python" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-label="Python">'
+        '<path d="M17 7.5c0-2.5-2-4-4.5-4s-4.5 1.8-4.5 4.2c0 2.8 2.2 3.8 4.5 4.8 2.5 1 4.5 2.2 4.5 4.8 0 2.5-2 4.2-4.5 4.2-3 0-5-2-5.5-4.5"/>'
+        '<path d="M17 7.5h2.5l1.5-1m-1.5 1l1.5 1"/>'
+        '<circle cx="14.5" cy="6" r="0.8" fill="#10b981"/>'
         '</svg>'
     ),
     "javascript": (
@@ -212,7 +228,7 @@ FORMAT_ICONS_SVG: dict[str, str] = {
     ),
     "html": (
         '<svg class="format-icon format-icon-html" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#f97316" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-label="HTML">'
-        '<polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/><line x1="14" y1="4" x2="10" y2="20"/>'
+        '<polyline points="7 8 3 12 7 16"/><polyline points="17 8 21 12 17 16"/><line x1="14" y1="4" x2="10" y2="20"/>'
         '</svg>'
     ),
     "css": (
@@ -241,13 +257,24 @@ FORMAT_ICONS_SVG: dict[str, str] = {
         '</svg>'
     ),
     "go": (
-        '<svg class="format-icon format-icon-go" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#06b6d4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-label="Go">'
-        '<circle cx="12" cy="12" r="9"/><path d="M12 8a4 4 0 1 0 4 4h-4"/>'
+        '<svg class="format-icon format-icon-go" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#00ADD8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-label="Go">'
+        '<path d="M2 9.5h3.5M1 12h5M2.5 14.5h3"/>'
+        '<path d="M14.5 9c-.8-.9-2-1.5-3.5-1.5-2.8 0-4.5 2-4.5 4.5s1.7 4.5 4.5 4.5c2.3 0 3.8-1.2 4.3-2.8H11.5"/>'
+        '<ellipse cx="19" cy="12" rx="3" ry="4.2"/>'
         '</svg>'
     ),
     "rust": (
-        '<svg class="format-icon format-icon-rust" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fb923c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-label="Rust">'
-        '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>'
+        '<svg class="format-icon format-icon-rust" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-label="Rust">'
+        '<path d="M6 13c0-3.3 2.7-5 6-5s6 1.7 6 5c0 3-2.7 5-6 5s-6-2-6-5z"/>'
+        '<path d="M9 8V6.5M15 8V6.5"/>'
+        '<circle cx="9" cy="5.5" r="1" fill="#ef4444"/>'
+        '<circle cx="15" cy="5.5" r="1" fill="#ef4444"/>'
+        '<path d="M6 12C4 10 3 8 3 6c2-1 4 1 4 2.5"/>'
+        '<path d="M3 6c1.5-2 4-1 4.5.5"/>'
+        '<path d="M18 12c2-2 3-4 3-6-2-1-4 1-4 2.5"/>'
+        '<path d="M21 6c-1.5-2-4-1-4.5.5"/>'
+        '<path d="M5 14l-3 1M5 16l-2 2M6 18l-2 2"/>'
+        '<path d="M19 14l3 1M19 16l2 2M18 18l2 2"/>'
         '</svg>'
     ),
     "c": (
@@ -266,8 +293,11 @@ FORMAT_ICONS_SVG: dict[str, str] = {
         '</svg>'
     ),
     "dockerfile": (
-        '<svg class="format-icon format-icon-dockerfile" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-label="Dockerfile">'
-        '<path d="M2 13h20a1 1 0 0 1 1 1c0 4-3 7-8 7-4 0-7-2-9-5-1.5 0-3-.5-4-3z"/><rect x="4" y="9" width="3" height="3"/><rect x="8" y="9" width="3" height="3"/><rect x="12" y="9" width="3" height="3"/><rect x="8" y="5" width="3" height="3"/>'
+        '<svg class="format-icon format-icon-dockerfile" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0ea5e9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-label="Dockerfile">'
+        '<path d="M2 13c0-4 4-6 9-6 4 0 7 2 8 4l2-2v5l-2-1c-1 3-4 4-7 4-5 0-9-1.5-10-4z"/>'
+        '<path d="M7 14c1 2 3 3 5 2"/>'
+        '<circle cx="5.5" cy="11.5" r="0.75" fill="#0ea5e9"/>'
+        '<path d="M10 4c0 1.5-.5 3-1.5 3M10 4c0 1.5.5 3 1.5 3M10 2v2"/>'
         '</svg>'
     ),
     "xml": (

@@ -23,14 +23,18 @@ window.formatToLocal = function (isoString, includeSeconds = false) {
   const year = d.getFullYear();
   const month = pad(d.getMonth() + 1);
   const day = pad(d.getDate());
-  const hours = pad(d.getHours());
+
+  let hours = d.getHours();
+  const ampm = hours >= 12 ? "pm" : "am";
+  hours = hours % 12;
+  if (hours === 0) hours = 12;
   const mins = pad(d.getMinutes());
 
   if (includeSeconds) {
     const secs = pad(d.getSeconds());
-    return `${year}-${month}-${day} ${hours}:${mins}:${secs}`;
+    return `${year}-${month}-${day} ${hours}:${mins}:${secs}${ampm}`;
   }
-  return `${year}-${month}-${day} ${hours}:${mins}`;
+  return `${year}-${month}-${day} ${hours}:${mins}${ampm}`;
 };
 
 window.updateLocalTimes = function () {

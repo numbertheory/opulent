@@ -7,6 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from opulent.database import get_db
 from opulent.formatter import (
     SUPPORTED_FORMATS,
+    format_datetime_12h,
     get_format_icon_svg,
     get_pygments_css,
     normalize_format,
@@ -27,6 +28,7 @@ from opulent.services.document_service import (
 BASE_DIR = Path(__file__).resolve().parent.parent
 templates = Jinja2Templates(directory=str(BASE_DIR / "templates"))
 templates.env.filters["iso_utc"] = to_iso_utc
+templates.env.filters["datetime_12h"] = format_datetime_12h
 templates.env.globals["get_format_icon_svg"] = get_format_icon_svg
 
 router = APIRouter(include_in_schema=False)

@@ -2,7 +2,83 @@ from datetime import datetime, timezone
 import pytest
 from httpx import AsyncClient
 
-from opulent.formatter import SUPPORTED_FORMATS, get_format_icon_svg, to_iso_utc
+from opulent.formatter import (
+    FORMAT_ICONS_SVG,
+    SUPPORTED_FORMATS,
+    format_datetime_12h,
+    get_format_icon_svg,
+    to_iso_utc,
+)
+
+
+def test_format_datetime_12h():
+    """Verify 12-hour clock format with lowercase am/pm and no leading zero on hour."""
+    # 1:19pm (13:19)
+    dt1 = datetime(2026, 10, 5, 13, 19, 0)
+    assert format_datetime_12h(dt1) == "2026-10-05 1:19pm"
+
+    # 1:09pm (13:09) - no leading zero on hour, leading zero on minute
+    dt2 = datetime(2026, 10, 5, 13, 9, 0)
+    assert format_datetime_12h(dt2) == "2026-10-05 1:09pm"
+
+    # 1:09am (01:09)
+    dt3 = datetime(2026, 10, 5, 1, 9, 0)
+    assert format_datetime_12h(dt3) == "2026-10-05 1:09am"
+
+    # 12:00am (midnight)
+    dt_midnight = datetime(2026, 10, 5, 0, 0, 0)
+    assert format_datetime_12h(dt_midnight) == "2026-10-05 12:00am"
+
+    # 12:00pm (noon)
+    dt_noon = datetime(2026, 10, 5, 12, 0, 0)
+    assert format_datetime_12h(dt_noon) == "2026-10-05 12:00pm"
+
+    # With seconds
+    assert format_datetime_12h(dt1, include_seconds=True) == "2026-10-05 1:19:00pm"
+    assert format_datetime_12h(dt2, include_seconds=True) == "2026-10-05 1:09:00pm"
+
+    # None handling
+    assert format_datetime_12h(None) == ""
+
+
+def test_format_icons_specifications():
+    """Verify specific format icon designs per prompt requirements."""
+    # Python: line drawing of a green snake icon
+    python_svg = get_format_icon_svg("python")
+    assert 'stroke="#10b981"' in python_svg
+    assert 'fill="none"' in python_svg
+    assert "format-icon-python" in python_svg
+
+    # Rust: red line drawing of a crab
+    rust_svg = get_format_icon_svg("rust")
+    assert 'stroke="#ef4444"' in rust_svg
+    assert 'fill="none"' in rust_svg
+    assert "format-icon-rust" in rust_svg
+
+    # Go: minimalist line format matching GoLang icon
+    go_svg = get_format_icon_svg("go")
+    assert 'stroke="#00ADD8"' in go_svg
+    assert 'fill="none"' in go_svg
+    assert "format-icon-go" in go_svg
+
+    # Dockerfile: line drawing of a whale, not copying Docker company logo (no stacked container rects)
+    docker_svg = get_format_icon_svg("dockerfile")
+    assert "format-icon-dockerfile" in docker_svg
+    assert 'fill="none"' in docker_svg
+    # Must not have the 4 stacked container rectangles of Docker logo
+    assert '<rect x="4" y="9"' not in docker_svg
+    assert '<rect x="8" y="5"' not in docker_svg
+
+    # XML and HTML: HTML uses the exact same logo as XML
+    xml_svg = get_format_icon_svg("xml")
+    html_svg = get_format_icon_svg("html")
+    # Both use the code bracket polyline points
+    assert 'points="7 8 3 12 7 16"' in xml_svg
+    assert 'points="7 8 3 12 7 16"' in html_svg
+    assert 'points="17 8 21 12 17 16"' in xml_svg
+    assert 'points="17 8 21 12 17 16"' in html_svg
+    assert 'x1="14" y1="4" x2="10" y2="20"' in xml_svg
+    assert 'x1="14" y1="4" x2="10" y2="20"' in html_svg
 
 
 def test_get_format_icon_svg_supported_formats():
@@ -59,6 +135,8 @@ async def test_all_pages_use_local_time_tags_without_hardcoded_utc(client: Async
     assert 'class="local-time"' in docs_res.text
     # Should not display hardcoded 'UTC' in timestamp text
     assert "UTC" not in docs_res.text.split("<tbody>")[1].split("</tbody>")[0]
+    import re
+    assert re.search(r'<time class="local-time"[^>]*>\s*\d{4}-\d{2}-\d{2}\s+\d{1,2}:\d{2}(?:am|pm)\s*</time>', docs_res.text)
 
     # 2. View page
     view_res = await client.get(f"/docs/{doc_id}")

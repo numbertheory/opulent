@@ -39,7 +39,7 @@
             <select id="v1" name="v1" class="form-select">
               {% for ver in versions | reverse %}
                 <option value="{{ ver.version }}" data-datetime="{{ ver.created_at | iso_utc if ver.created_at else '' }}" data-version="{{ ver.version }}" {% if ver.version == 1 %}selected{% endif %}>
-                  v{{ ver.version }} ({{ ver.created_at.strftime('%Y-%m-%d %H:%M') if ver.created_at else '' }})
+                  v{{ ver.version }} ({{ ver.created_at | datetime_12h }})
                 </option>
               {% endfor %}
             </select>
@@ -98,7 +98,7 @@
                 </td>
                 <td style="color: var(--text-secondary); font-size: 0.85rem; white-space: nowrap;">
                   <time class="local-time" data-seconds="true" datetime="{{ ver.created_at | iso_utc if ver.created_at else '' }}">
-                    {{ ver.created_at.strftime('%Y-%m-%d %H:%M:%S') if ver.created_at else '' }}
+                    {{ ver.created_at | datetime_12h(include_seconds=True) }}
                   </time>
                 </td>
                 <td>
