@@ -237,7 +237,7 @@ async def get_document_version(
 async def list_documents(
     db: AsyncSession,
     page: int = 1,
-    per_page: int = 15,
+    per_page: int = 20,
 ) -> tuple[list[Document], int, int]:
     """
     Return a paginated list of documents sorted by most recent first.
@@ -248,7 +248,7 @@ async def list_documents(
     if page < 1:
         page = 1
     if per_page < 1:
-        per_page = 15
+        per_page = 20
 
     # Total count
     count_stmt = select(func.count(Document.id))

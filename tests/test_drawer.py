@@ -170,7 +170,7 @@ async def test_drawer_open_with_query_param(client: AsyncClient):
 
 @pytest.mark.asyncio
 async def test_drawer_contains_search_and_pagination(client: AsyncClient):
-    for i in range(12):
+    for i in range(22):
         await client.post(
             "/docs",
             data={"title": f"Test Note {i}", "format": "markdown", "content": f"Content {i}"},
@@ -247,26 +247,45 @@ async def test_drawer_compact_icons_no_id_no_lines_and_sorted_by_newest(client: 
     assert "Third Doc" in updated_cards[2]
     assert "Second Doc" in updated_cards[3]
 
-    # Inspect the top card content
+    # Inspect the top card content (has 2 versions)
     top_card_html = updated_cards[1].split('</div>\n            </div>')[0]
 
-    # Verify format icon is present instead of word tag badge
+    # 1. Single-line layout: drawer-doc-left and drawer-doc-right
+    assert 'class="drawer-doc-left"' in top_card_html
+    assert 'class="drawer-doc-right"' in top_card_html
+
+    # 2. Content preview is removed
+    assert "doc-snippet" not in top_card_html
+
+    # 3. Format icon is present on the left instead of word tag badge
     assert 'class="format-icon format-icon-python"' in top_card_html
     assert '<span class="badge">Python</span>' not in top_card_html
     assert '<span class="badge">Shell / Bash</span>' not in updated_home_res.text.split('class="drawer-content"')[1].split('class="drawer-footer"')[0]
 
-    # Verify document ID and line count are NOT in the drawer card
-    assert 'class="doc-id-code"' not in top_card_html
-    assert doc1_id not in top_card_html.split('class="drawer-doc-meta"')[1]
-    assert "lines" not in top_card_html.split('class="drawer-doc-meta"')[1]
+    # 4. No "v2" badge tag; instead text separator and "2 versions"
+    assert "badge-gold" not in top_card_html
+    assert ">v2<" not in top_card_html
+    assert "drawer-doc-separator" in top_card_html
+    assert "2 versions" in top_card_html
 
-    # Verify updated time is displayed
+    # 5. Documents with only 1 version (Second Doc) do NOT have separator or versions text
+    second_card_html = updated_cards[3].split('</div>\n            </div>')[0]
+    assert "drawer-doc-separator" not in second_card_html
+    assert "versions" not in second_card_html
+
+    # 6. Verify document ID and line count are NOT in the drawer card
+    assert 'class="doc-id-code"' not in top_card_html
+    assert doc1_id not in top_card_html.split('class="drawer-doc-right"')[1]
+    assert "lines" not in top_card_html.split('class="drawer-doc-right"')[1]
+
+    # 7. Verify updated time is displayed
     assert 'class="local-time"' in top_card_html
 
-    # Also verify /api/docs reflects the same newest-first ordering and includes format_icon_svg
-    api_res = await client.get("/api/docs?page=1&per_page=15")
+    # 8. 20 items per page by default
+    api_res = await client.get("/api/docs?page=1")
     assert api_res.status_code == 200
     api_data = api_res.json()
+    assert api_data["per_page"] == 20
     assert api_data["items"][0]["title"] == "First Doc (Updated)"
     assert api_data["items"][0]["format_icon_svg"] != ""
     assert "format-icon-python" in api_data["items"][0]["format_icon_svg"]

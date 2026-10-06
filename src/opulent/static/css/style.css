@@ -978,7 +978,7 @@ body {
   top: 0;
   left: 0;
   bottom: 0;
-  width: min(480px, 92vw);
+  width: min(520px, 94vw);
   height: 100vh;
   background-color: var(--bg-secondary);
   border-right: 1px solid var(--border-color);
@@ -1088,11 +1088,12 @@ body {
   background-color: var(--bg-card);
   border: 1px solid var(--border-color);
   border-radius: 6px;
-  padding: 0.65rem 0.85rem;
+  padding: 0.5rem 0.75rem;
   transition: all 0.2s ease;
   display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
 }
 
 .drawer-doc-card:hover {
@@ -1102,32 +1103,65 @@ body {
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.25);
 }
 
-.drawer-doc-top {
+.drawer-doc-left {
   display: flex;
   align-items: center;
   gap: 0.45rem;
   min-width: 0;
+  flex: 1;
+}
+
+.drawer-doc-left .doc-format-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
 }
 
 .drawer-doc-title {
   color: var(--text-primary);
   text-decoration: none;
   font-weight: 600;
-  font-size: 0.9rem;
-  word-break: break-word;
-  flex: 1;
+  font-size: 0.88rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .drawer-doc-title:hover {
   color: var(--gold-hover);
 }
 
-.drawer-doc-meta {
+.drawer-doc-right {
   display: flex;
   align-items: center;
   gap: 0.45rem;
-  font-size: 0.75rem;
+  font-size: 0.78rem;
   color: var(--text-muted);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.drawer-doc-right time {
+  color: var(--text-muted);
+  font-size: 0.78rem;
+}
+
+.drawer-doc-separator {
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  user-select: none;
+}
+
+.drawer-doc-versions {
+  color: var(--text-muted);
+  font-size: 0.78rem;
+  text-decoration: none;
+}
+
+.drawer-doc-versions:hover {
+  color: var(--gold-hover);
+  text-decoration: underline;
 }
 
 .drawer-footer {

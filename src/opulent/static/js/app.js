@@ -81,7 +81,7 @@ window.openDrawer = async function () {
   const listContainer = document.getElementById("drawer-doc-list");
   if (listContainer && listContainer.children.length === 0) {
     try {
-      const res = await fetch("/api/docs?page=1&per_page=15");
+      const res = await fetch("/api/docs?page=1&per_page=20");
       if (res.ok) {
         const data = await res.json();
         const countBadge = document.getElementById("drawer-total-count");
@@ -104,17 +104,20 @@ window.openDrawer = async function () {
             const formattedDate = updateDateIso ? window.formatToLocal(updateDateIso) : "";
             const iconSvg = item.format_icon_svg || `<svg class="format-icon format-icon-${escapeHtml(item.format)}" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>`;
 
+            const versionsHtml = item.version_count > 1
+              ? `<span class="drawer-doc-separator">•</span><span class="drawer-doc-versions">${item.version_count} versions</span>`
+              : "";
+
             card.innerHTML = `
-              <div class="drawer-doc-top">
-                <span class="doc-format-icon" style="display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0;" title="${escapeHtml(item.display_format || item.format)}">
+              <div class="drawer-doc-left">
+                <span class="doc-format-icon" title="${escapeHtml(item.display_format || item.format)}">
                   ${iconSvg}
                 </span>
-                <a href="${item.url}" class="drawer-doc-title">${escapeHtml(item.title || "Untitled")}</a>
+                <a href="${item.url}" class="drawer-doc-title" title="${escapeHtml(item.title || "Untitled")}">${escapeHtml(item.title || "Untitled")}</a>
               </div>
-              ${item.snippet ? `<div class="doc-snippet">${escapeHtml(item.snippet)}</div>` : ""}
-              <div class="drawer-doc-meta">
+              <div class="drawer-doc-right">
                 <time class="local-time" datetime="${updateDateIso || ''}">${escapeHtml(formattedDate)}</time>
-                ${item.version_count > 1 ? `<span class="badge badge-gold" style="font-size: 0.68rem; padding: 0.05rem 0.3rem;">v${item.version_count}</span>` : ""}
+                ${versionsHtml}
               </div>
             `;
             listContainer.appendChild(card);

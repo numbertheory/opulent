@@ -130,7 +130,7 @@ async def create_document(
 async def get_documents(
     request: Request,
     page: int = Query(default=1, ge=1, description="Page number"),
-    per_page: int = Query(default=15, ge=1, le=100, description="Items per page"),
+    per_page: int = Query(default=20, ge=1, le=100, description="Items per page"),
     db: AsyncSession = Depends(get_db),
 ):
     """List documents with pagination."""

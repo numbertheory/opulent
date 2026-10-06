@@ -38,7 +38,7 @@ router = APIRouter(include_in_schema=False)
 async def index(
     request: Request,
     page: int = Query(default=1, ge=1),
-    per_page: int = Query(default=10, ge=1, le=50),
+    per_page: int = Query(default=20, ge=1, le=50),
     error: str | None = None,
     notice: str | None = None,
     drawer: int | None = None,
@@ -155,7 +155,7 @@ async def view_document(
         )
 
     # Fetch documents for the collapsible drawer so it can be revealed while viewing a document
-    docs, total, total_pages = await list_documents(db=db, page=1, per_page=15)
+    docs, total, total_pages = await list_documents(db=db, page=1, per_page=20)
 
     rendered_html = render_document_html(doc.content, doc.format)
 
@@ -206,7 +206,7 @@ async def edit_document_page(
             status_code=status.HTTP_404_NOT_FOUND,
         )
 
-    docs, total, total_pages = await list_documents(db=db, page=1, per_page=15)
+    docs, total, total_pages = await list_documents(db=db, page=1, per_page=20)
 
     return templates.TemplateResponse(
         request=request,
@@ -289,7 +289,7 @@ async def document_history(
         )
 
     versions = await get_document_versions(db=db, doc_id=doc_id)
-    docs, total, total_pages = await list_documents(db=db, page=1, per_page=15)
+    docs, total, total_pages = await list_documents(db=db, page=1, per_page=20)
 
     return templates.TemplateResponse(
         request=request,
@@ -325,7 +325,7 @@ async def view_historical_version(
             status_code=status.HTTP_404_NOT_FOUND,
         )
 
-    docs, total, total_pages = await list_documents(db=db, page=1, per_page=15)
+    docs, total, total_pages = await list_documents(db=db, page=1, per_page=20)
     rendered_html = render_document_html(ver.content, ver.format)
 
     base = str(request.base_url).rstrip("/")
@@ -430,7 +430,7 @@ async def compare_document_versions(
     )
 
     diff_html = render_diff_html(diff_result)
-    docs, total, total_pages = await list_documents(db=db, page=1, per_page=15)
+    docs, total, total_pages = await list_documents(db=db, page=1, per_page=20)
 
     return templates.TemplateResponse(
         request=request,

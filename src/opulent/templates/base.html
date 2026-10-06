@@ -137,27 +137,22 @@
               data-id="{{ doc.doc_id | lower }}"
               data-format="{{ doc.format | lower }}"
             >
-              <div class="drawer-doc-top">
+              <div class="drawer-doc-left">
                 <span
                   class="doc-format-icon"
-                  style="display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0;"
                   title="{{ doc.display_format }}"
                 >
                   {{ doc.format_icon_svg | safe }}
                 </span>
-                <a href="/docs/{{ doc.doc_id }}" class="drawer-doc-title">
+                <a href="/docs/{{ doc.doc_id }}" class="drawer-doc-title" title="{{ doc.title }}">
                   {{ doc.title }}
                 </a>
               </div>
-              {% if doc.snippet %}
-                <div class="doc-snippet">{{ doc.snippet }}</div>
-              {% endif %}
-              <div class="drawer-doc-meta">
+              <div class="drawer-doc-right">
                 <time class="local-time" datetime="{{ doc.effective_updated_at | iso_utc }}">{{ doc.effective_updated_at | datetime_12h }}</time>
                 {% if doc.version_count > 1 %}
-                  <span class="badge badge-gold" style="font-size: 0.68rem; padding: 0.05rem 0.3rem;">
-                    v{{ doc.current_version }}
-                  </span>
+                  <span class="drawer-doc-separator">•</span>
+                  <span class="drawer-doc-versions">{{ doc.version_count }} versions</span>
                 {% endif %}
               </div>
             </div>
