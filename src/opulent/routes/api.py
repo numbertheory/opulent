@@ -19,6 +19,8 @@ from opulent.schemas import (
 )
 from opulent.services.diff_service import compute_diff
 from opulent.services.document_service import (
+    delete_document,
+    delete_document_versions,
     get_document_by_doc_id,
     get_document_version,
     get_document_versions,
@@ -336,3 +338,50 @@ async def compare_versions(
         deletions=diff_res.deletions,
         lines=[DiffLineSchema(**line.to_dict()) for line in diff_res.lines],
     )
+
+
+@router.delete("/{doc_id}", status_code=status.HTTP_200_OK)
+async def delete_document_api(
+    doc_id: str,
+    db: AsyncSession = Depends(get_db),
+):
+    """Delete a document and all of its versions."""
+    deleted = await delete_document(db=db, doc_id=doc_id)
+    if not deleted:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Document '{doc_id}' not found",
+        )
+    return {"deleted": True, "doc_id": doc_id}
+
+
+@router.delete("/{doc_id}/history/{version}", status_code=status.HTTP_200_OK)
+async def delete_document_version_api(
+    doc_id: str,
+    version: int,
+    db: AsyncSession = Depends(get_db),
+):
+    """Delete a specific version of a document."""
+    doc = await get_document_by_doc_id(db=db, doc_id=doc_id)
+    if doc is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Document '{doc_id}' not found",
+        )
+
+    deleted_count, doc_deleted = await delete_document_versions(
+        db=db, doc_id=doc_id, versions=[version]
+    )
+    if deleted_count == 0:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Version {version} not found for document '{doc_id}'",
+        )
+
+    return {
+        "deleted": True,
+        "doc_id": doc_id,
+        "version": version,
+        "doc_deleted": doc_deleted,
+    }
+

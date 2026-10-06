@@ -3,6 +3,19 @@
 {% block title %}All Documents - Opulent{% endblock %}
 
 {% block content %}
+  {% if error %}
+    <div class="alert alert-error" style="margin-bottom: 1.5rem;">
+      <span>⚠️</span>
+      <span>{{ error }}</span>
+    </div>
+  {% endif %}
+  {% if notice %}
+    <div class="alert alert-info" style="margin-bottom: 1.5rem;">
+      <span>ℹ️</span>
+      <span>{{ notice }}</span>
+    </div>
+  {% endif %}
+
   <div class="card">
     <div class="card-header">
       <div class="card-title">
@@ -13,6 +26,16 @@
         {% endif %}
       </div>
       <div style="display: flex; gap: 0.75rem; align-items: center;">
+        <button
+          type="submit"
+          form="delete-docs-form"
+          id="delete-selected-docs-btn"
+          class="btn btn-danger btn-sm"
+          style="display: none;"
+          title="Delete selected documents"
+        >
+          <span>🗑️ Delete Selected (<span id="selected-docs-count">0</span>)</span>
+        </button>
         <a href="/" class="btn btn-primary btn-sm">
           <span>✍️ Create Document</span>
         </a>
@@ -33,80 +56,105 @@
       </div>
     </div>
 
-    <!-- Full Documents Table -->
-    <div class="docs-table-wrapper">
-      {% if documents %}
-        <table class="docs-table" id="all-documents-table">
-          <thead>
-            <tr>
-              <th>Document</th>
-              <th>Updated</th>
-              <th>Versions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for doc in documents %}
-              <tr
-                class="doc-table-row"
-                data-title="{{ doc.title | lower }}"
-                data-id="{{ doc.doc_id | lower }}"
-                data-format="{{ doc.format | lower }}"
-              >
-                <td class="doc-title-cell">
-                  <div class="doc-title-wrapper" style="display: flex; align-items: flex-start; gap: 0.75rem;">
-                    <span
-                      class="doc-format-icon"
-                      title="{{ doc.display_format }}"
-                      style="display: inline-flex; align-items: center; justify-content: center; margin-top: 3px; flex-shrink: 0;"
-                    >
-                      {{ doc.format_icon_svg | safe }}
-                    </span>
-                    <div class="doc-title-content" style="min-width: 0; flex: 1;">
-                      <a href="/docs/{{ doc.doc_id }}" class="doc-link">
-                        {{ doc.title }}
-                      </a>
-                      {% if doc.snippet %}
-                        <div class="doc-snippet">{{ doc.snippet }}</div>
-                      {% endif %}
+    <!-- Full Documents Table with Selection for Deletion -->
+    <form id="delete-docs-form" action="/documents/delete" method="post" onsubmit="return confirmDeleteDocs()">
+      <div class="docs-table-wrapper">
+        {% if documents %}
+          <table class="docs-table" id="all-documents-table">
+            <thead>
+              <tr>
+                <th style="width: 44px; text-align: center;">
+                  <input
+                    type="checkbox"
+                    id="select-all-docs"
+                    class="form-checkbox"
+                    title="Select all documents on this page"
+                    aria-label="Select all documents on this page"
+                    onchange="toggleSelectAllDocs(this)"
+                  />
+                </th>
+                <th>Document</th>
+                <th>Updated</th>
+                <th>Versions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for doc in documents %}
+                <tr
+                  class="doc-table-row"
+                  id="doc-row-{{ doc.doc_id }}"
+                  data-title="{{ doc.title | lower }}"
+                  data-id="{{ doc.doc_id | lower }}"
+                  data-format="{{ doc.format | lower }}"
+                >
+                  <td style="text-align: center;">
+                    <input
+                      type="checkbox"
+                      name="selected_docs"
+                      value="{{ doc.doc_id }}"
+                      class="form-checkbox doc-select-checkbox"
+                      id="checkbox-doc-{{ doc.doc_id }}"
+                      title="Select document {{ doc.doc_id }}"
+                      aria-label="Select document {{ doc.doc_id }}"
+                      onchange="updateDocsSelectionState()"
+                    />
+                  </td>
+                  <td class="doc-title-cell">
+                    <div class="doc-title-wrapper" style="display: flex; align-items: flex-start; gap: 0.75rem;">
+                      <span
+                        class="doc-format-icon"
+                        title="{{ doc.display_format }}"
+                        style="display: inline-flex; align-items: center; justify-content: center; margin-top: 3px; flex-shrink: 0;"
+                      >
+                        {{ doc.format_icon_svg | safe }}
+                      </span>
+                      <div class="doc-title-content" style="min-width: 0; flex: 1;">
+                        <a href="/docs/{{ doc.doc_id }}" class="doc-link">
+                          {{ doc.title }}
+                        </a>
+                        {% if doc.snippet %}
+                          <div class="doc-snippet">{{ doc.snippet }}</div>
+                        {% endif %}
+                      </div>
                     </div>
-                  </div>
-                </td>
-                <td style="color: var(--text-secondary); font-size: 0.85rem; white-space: nowrap;">
-                  <time class="local-time" datetime="{{ doc.effective_updated_at | iso_utc }}">
-                    {{ doc.effective_updated_at | datetime_12h }}
-                  </time>
-                </td>
-                <td style="text-align: center;">
-                  <a
-                    href="/docs/{{ doc.doc_id }}/history"
-                    class="version-count-link"
-                    title="View version history ({{ doc.version_count }} revision{{ 's' if doc.version_count != 1 else '' }})"
-                  >
-                    {{ doc.version_count }}
-                  </a>
+                  </td>
+                  <td style="color: var(--text-secondary); font-size: 0.85rem; white-space: nowrap;">
+                    <time class="local-time" datetime="{{ doc.effective_updated_at | iso_utc }}">
+                      {{ doc.effective_updated_at | datetime_12h }}
+                    </time>
+                  </td>
+                  <td style="text-align: center;">
+                    <a
+                      href="/docs/{{ doc.doc_id }}/history"
+                      class="version-count-link"
+                      title="View version history ({{ doc.version_count }} revision{{ 's' if doc.version_count != 1 else '' }})"
+                    >
+                      {{ doc.version_count }}
+                    </a>
+                  </td>
+                </tr>
+              {% endfor %}
+              <tr id="table-no-results" style="display: none;">
+                <td colspan="4" style="text-align: center; padding: 2rem; color: var(--text-muted);">
+                  No documents match your filter.
                 </td>
               </tr>
-            {% endfor %}
-            <tr id="table-no-results" style="display: none;">
-              <td colspan="3" style="text-align: center; padding: 2rem; color: var(--text-muted);">
-                No documents match your filter.
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      {% else %}
-        <div class="empty-state">
-          <div class="empty-state-icon">📄</div>
-          <h3>No documents created yet</h3>
-          <p style="margin-top: 0.5rem; font-size: 0.9rem;">
-            Be the first to publish a document using the editor!
-          </p>
-          <a href="/" class="btn btn-primary" style="margin-top: 1.25rem;">
-            <span>✍️ Create First Document</span>
-          </a>
-        </div>
-      {% endif %}
-    </div>
+            </tbody>
+          </table>
+        {% else %}
+          <div class="empty-state">
+            <div class="empty-state-icon">📄</div>
+            <h3>No documents created yet</h3>
+            <p style="margin-top: 0.5rem; font-size: 0.9rem;">
+              Be the first to publish a document using the editor!
+            </p>
+            <a href="/" class="btn btn-primary" style="margin-top: 1.25rem;">
+              <span>✍️ Create First Document</span>
+            </a>
+          </div>
+        {% endif %}
+      </div>
+    </form>
 
     <!-- Pagination Controls -->
     {% if total_pages is defined and total_pages > 1 %}

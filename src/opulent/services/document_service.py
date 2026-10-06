@@ -1,6 +1,6 @@
 from datetime import datetime, timezone
 from math import ceil
-from sqlalchemy import func, select, update
+from sqlalchemy import func, select, update, delete
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
@@ -273,3 +273,99 @@ async def list_documents(
     documents = list(res.scalars().all())
 
     return documents, total, total_pages
+
+
+async def delete_documents(
+    db: AsyncSession,
+    doc_ids: list[str],
+) -> int:
+    """
+    Delete one or multiple documents by their public doc_id values.
+    Cascades automatically to all associated versions.
+
+    Returns:
+        int: Number of documents successfully deleted.
+    """
+    if not doc_ids:
+        return 0
+
+    stmt = (
+        select(Document)
+        .options(selectinload(Document.versions))
+        .where(Document.doc_id.in_(doc_ids))
+    )
+    result = await db.execute(stmt)
+    docs = list(result.scalars().all())
+
+    if not docs:
+        return 0
+
+    count = len(docs)
+    for doc in docs:
+        await db.delete(doc)
+
+    await db.commit()
+    return count
+
+
+async def delete_document(
+    db: AsyncSession,
+    doc_id: str,
+) -> bool:
+    """Delete a single document by its public doc_id."""
+    deleted_count = await delete_documents(db, [doc_id])
+    return deleted_count > 0
+
+
+async def delete_document_versions(
+    db: AsyncSession,
+    doc_id: str,
+    versions: list[int],
+) -> tuple[int, bool]:
+    """
+    Delete specific versions of a document from its revision history.
+
+    If all versions of the document are deleted, the entire document itself is deleted.
+    If the current (latest) version was among those deleted, the document's state
+    is updated/rolled back to match the latest remaining version.
+
+    Returns:
+        tuple[int, bool]: (deleted_versions_count, doc_deleted)
+    """
+    if not versions:
+        return 0, False
+
+    doc = await get_document_by_doc_id(db, doc_id=doc_id)
+    if doc is None:
+        return 0, False
+
+    all_versions = sorted(doc.versions, key=lambda v: v.version)
+    target_versions = set(versions)
+
+    to_delete = [v for v in all_versions if v.version in target_versions]
+    remaining = [v for v in all_versions if v.version not in target_versions]
+
+    if not to_delete:
+        return 0, False
+
+    if not remaining:
+        # All versions deleted -> delete the entire document
+        await db.delete(doc)
+        await db.commit()
+        return len(to_delete), True
+
+    # Delete targeted version records
+    for v in to_delete:
+        await db.delete(v)
+
+    # If the latest version was among those deleted, update document to the new latest remaining version
+    new_latest = remaining[-1]
+    doc.title = new_latest.title
+    doc.content = new_latest.content
+    doc.format = new_latest.format
+    doc.content_hash = new_latest.content_hash
+    doc.updated_at = new_latest.created_at
+
+    await db.commit()
+    return len(to_delete), False
+

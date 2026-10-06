@@ -199,7 +199,154 @@ window.filterDocumentsTable = function (query) {
     noResultsRow.style.display =
       visibleCount === 0 && rows.length > 0 ? "" : "none";
   }
+  window.updateDocsSelectionState();
 };
+
+// Document Selection & Deletion in Standalone Table View
+window.toggleSelectAllDocs = function (master) {
+  const isChecked = !!(master && master.checked);
+  const rows = document.querySelectorAll(".docs-table tbody tr.doc-table-row");
+  rows.forEach((row) => {
+    if (row.style.display !== "none") {
+      const cb = row.querySelector(".doc-select-checkbox");
+      if (cb) {
+        cb.checked = isChecked;
+      }
+    }
+  });
+  window.updateDocsSelectionState();
+};
+
+window.updateDocsSelectionState = function () {
+  const checkboxes = document.querySelectorAll(".doc-select-checkbox");
+  const master = document.getElementById("select-all-docs");
+  const deleteBtn = document.getElementById("delete-selected-docs-btn");
+  const countSpan = document.getElementById("selected-docs-count");
+
+  let checkedCount = 0;
+  let visibleCount = 0;
+
+  checkboxes.forEach((cb) => {
+    const row = cb.closest("tr");
+    const isVisible = !row || row.style.display !== "none";
+    if (isVisible) {
+      visibleCount++;
+    }
+    if (cb.checked) {
+      checkedCount++;
+      if (row) row.classList.add("selected");
+    } else {
+      if (row) row.classList.remove("selected");
+    }
+  });
+
+  if (countSpan) {
+    countSpan.textContent = checkedCount;
+  }
+
+  if (deleteBtn) {
+    deleteBtn.style.display = checkedCount > 0 ? "inline-flex" : "none";
+  }
+
+  if (master) {
+    if (checkedCount === 0 || visibleCount === 0) {
+      master.checked = false;
+      master.indeterminate = false;
+    } else if (checkedCount >= visibleCount) {
+      master.checked = true;
+      master.indeterminate = false;
+    } else {
+      master.checked = false;
+      master.indeterminate = true;
+    }
+  }
+};
+
+window.confirmDeleteDocs = function () {
+  const checked = document.querySelectorAll(".doc-select-checkbox:checked");
+  if (checked.length === 0) {
+    alert("Please select at least one document to delete.");
+    return false;
+  }
+  const count = checked.length;
+  const msg =
+    count === 1
+      ? "Are you sure you want to permanently delete this document and all of its revision history?"
+      : `Are you sure you want to permanently delete ${count} selected documents and their revision histories?`;
+  return confirm(msg);
+};
+
+// Revision Selection & Deletion in History View
+window.toggleSelectAllRevisions = function (master) {
+  const isChecked = !!(master && master.checked);
+  const checkboxes = document.querySelectorAll(".revision-select-checkbox");
+  checkboxes.forEach((cb) => {
+    cb.checked = isChecked;
+  });
+  window.updateRevisionsSelectionState();
+};
+
+window.updateRevisionsSelectionState = function () {
+  const checkboxes = document.querySelectorAll(".revision-select-checkbox");
+  const master = document.getElementById("select-all-revisions");
+  const deleteBtn = document.getElementById("delete-selected-revisions-btn");
+  const countSpan = document.getElementById("selected-revisions-count");
+
+  let checkedCount = 0;
+  const total = checkboxes.length;
+
+  checkboxes.forEach((cb) => {
+    const row = cb.closest("tr");
+    if (cb.checked) {
+      checkedCount++;
+      if (row) row.classList.add("selected");
+    } else {
+      if (row) row.classList.remove("selected");
+    }
+  });
+
+  if (countSpan) {
+    countSpan.textContent = checkedCount;
+  }
+
+  if (deleteBtn) {
+    deleteBtn.style.display = checkedCount > 0 ? "inline-flex" : "none";
+  }
+
+  if (master) {
+    if (checkedCount === 0 || total === 0) {
+      master.checked = false;
+      master.indeterminate = false;
+    } else if (checkedCount === total) {
+      master.checked = true;
+      master.indeterminate = false;
+    } else {
+      master.checked = false;
+      master.indeterminate = true;
+    }
+  }
+};
+
+window.confirmDeleteRevisions = function () {
+  const checked = document.querySelectorAll(".revision-select-checkbox:checked");
+  if (checked.length === 0) {
+    alert("Please select at least one revision to delete.");
+    return false;
+  }
+  const count = checked.length;
+  const total = document.querySelectorAll(".revision-select-checkbox").length;
+  if (count >= total) {
+    return confirm(
+      `You have selected ALL revisions (${count}). Deleting all revisions will permanently delete this entire document. Are you sure you want to proceed?`
+    );
+  }
+  const msg =
+    count === 1
+      ? "Are you sure you want to delete this revision from the history? This action cannot be undone."
+      : `Are you sure you want to delete ${count} selected revisions from the history? This action cannot be undone.`;
+  return confirm(msg);
+};
+
 
 // Theme Management (Light / Dark with system default and persistence)
 function getSystemTheme() {

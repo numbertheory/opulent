@@ -3,6 +3,19 @@
 {% block title %}Version History: {{ document.title }} - Opulent{% endblock %}
 
 {% block content %}
+  {% if error %}
+    <div class="alert alert-error" style="margin-bottom: 1.5rem;">
+      <span>⚠️</span>
+      <span>{{ error }}</span>
+    </div>
+  {% endif %}
+  {% if notice %}
+    <div class="alert alert-info" style="margin-bottom: 1.5rem;">
+      <span>ℹ️</span>
+      <span>{{ notice }}</span>
+    </div>
+  {% endif %}
+
   <div class="doc-header">
     <div class="doc-title-row">
       <div>
@@ -64,34 +77,69 @@
     </div>
   {% endif %}
 
-  <!-- Versions Timeline -->
+  <!-- Versions Timeline with Revision Selection for Deletion -->
   <div class="card">
     <div class="card-header">
       <div class="card-title">
         <span>📜</span>
         <span>Revisions Timeline</span>
       </div>
-      <span class="badge badge-gold">{{ versions | length }} versions recorded</span>
+      <div style="display: flex; gap: 0.75rem; align-items: center;">
+        <button
+          type="submit"
+          form="delete-revisions-form"
+          id="delete-selected-revisions-btn"
+          class="btn btn-danger btn-sm"
+          style="display: none;"
+          title="Delete selected revisions"
+        >
+          <span>🗑️ Delete Selected (<span id="selected-revisions-count">0</span>)</span>
+        </button>
+        <span class="badge badge-gold">{{ versions | length }} versions recorded</span>
+      </div>
     </div>
     <div class="card-body" style="padding: 0;">
-      <div class="docs-table-wrapper">
-        <table class="docs-table">
-          <thead>
-            <tr>
-              <th>Version</th>
-              <th>Date & Time</th>
-              <th>Title & Format</th>
-              <th>Stats</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for ver in versions %}
+      <form id="delete-revisions-form" action="/docs/{{ document.doc_id }}/history/delete" method="post" onsubmit="return confirmDeleteRevisions()">
+        <div class="docs-table-wrapper">
+          <table class="docs-table" id="revisions-table">
+            <thead>
               <tr>
-                <td>
-                  <span class="badge {% if ver.version == document.current_version %}badge-gold{% else %}badge-blue{% endif %}">
-                    v{{ ver.version }}
-                  </span>
+                <th style="width: 44px; text-align: center;">
+                  <input
+                    type="checkbox"
+                    id="select-all-revisions"
+                    class="form-checkbox"
+                    title="Select all revisions"
+                    aria-label="Select all revisions"
+                    onchange="toggleSelectAllRevisions(this)"
+                  />
+                </th>
+                <th>Version</th>
+                <th>Date & Time</th>
+                <th>Title & Format</th>
+                <th>Stats</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for ver in versions %}
+                <tr class="revision-table-row" id="revision-row-{{ ver.version }}">
+                  <td style="text-align: center;">
+                    <input
+                      type="checkbox"
+                      name="selected_versions"
+                      value="{{ ver.version }}"
+                      class="form-checkbox revision-select-checkbox"
+                      id="checkbox-ver-{{ ver.version }}"
+                      title="Select version {{ ver.version }}"
+                      aria-label="Select version {{ ver.version }}"
+                      onchange="updateRevisionsSelectionState()"
+                    />
+                  </td>
+                  <td>
+                    <span class="badge {% if ver.version == document.current_version %}badge-gold{% else %}badge-blue{% endif %}">
+                      v{{ ver.version }}
+                    </span>
                   {% if ver.version == document.current_version %}
                     <span style="font-size: 0.75rem; color: var(--gold-hover); margin-left: 0.25rem;">(Current)</span>
                   {% endif %}
@@ -153,6 +201,7 @@
           </tbody>
         </table>
       </div>
+      </form>
     </div>
   </div>
 {% endblock %}

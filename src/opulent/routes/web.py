@@ -17,6 +17,8 @@ from opulent.formatter import (
 from opulent.hasher import normalize_content
 from opulent.services.diff_service import compute_diff, render_diff_html
 from opulent.services.document_service import (
+    delete_document_versions,
+    delete_documents,
     get_document_by_doc_id,
     get_document_version,
     get_document_versions,
@@ -73,6 +75,8 @@ async def list_documents_standalone(
     request: Request,
     page: int = Query(default=1, ge=1),
     per_page: int = Query(default=15, ge=1, le=50),
+    error: str | None = None,
+    notice: str | None = None,
     db: AsyncSession = Depends(get_db),
 ):
     """
@@ -94,7 +98,37 @@ async def list_documents_standalone(
             "total": total,
             "total_pages": total_pages,
             "hide_drawer_tab": True,
+            "error": error,
+            "notice": notice,
         },
+    )
+
+
+@router.post("/documents/delete")
+async def delete_documents_form(
+    selected_docs: list[str] = Form(default=[]),
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Delete selected documents from the standalone documents view.
+    """
+    if not selected_docs:
+        return RedirectResponse(
+            url="/documents?error=No+documents+were+selected+for+deletion",
+            status_code=status.HTTP_303_SEE_OTHER,
+        )
+
+    count = await delete_documents(db=db, doc_ids=selected_docs)
+    if count == 0:
+        return RedirectResponse(
+            url="/documents?error=Selected+documents+could+not+be+found",
+            status_code=status.HTTP_303_SEE_OTHER,
+        )
+
+    doc_str = "document" if count == 1 else "documents"
+    return RedirectResponse(
+        url=f"/documents?notice=Successfully+deleted+{count}+{doc_str}",
+        status_code=status.HTTP_303_SEE_OTHER,
     )
 
 
@@ -274,6 +308,8 @@ async def handle_edit_document(
 async def document_history(
     doc_id: str,
     request: Request,
+    notice: str | None = None,
+    error: str | None = None,
     db: AsyncSession = Depends(get_db),
 ):
     """
@@ -301,7 +337,55 @@ async def document_history(
             "total": total,
             "total_pages": total_pages,
             "page": 1,
+            "error": error,
+            "notice": notice,
         },
+    )
+
+
+@router.post("/docs/{doc_id}/history/delete")
+async def delete_document_revisions_form(
+    doc_id: str,
+    selected_versions: list[int] = Form(default=[]),
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Delete selected revisions from the document history view.
+    If all revisions are deleted, the entire document is deleted.
+    """
+    doc = await get_document_by_doc_id(db=db, doc_id=doc_id)
+    if doc is None:
+        return RedirectResponse(
+            url="/documents?error=Document+not+found",
+            status_code=status.HTTP_303_SEE_OTHER,
+        )
+
+    if not selected_versions:
+        return RedirectResponse(
+            url=f"/docs/{doc_id}/history?error=No+revisions+were+selected+for+deletion",
+            status_code=status.HTTP_303_SEE_OTHER,
+        )
+
+    deleted_count, doc_deleted = await delete_document_versions(
+        db=db, doc_id=doc_id, versions=selected_versions
+    )
+
+    if deleted_count == 0:
+        return RedirectResponse(
+            url=f"/docs/{doc_id}/history?error=Selected+revisions+could+not+be+found",
+            status_code=status.HTTP_303_SEE_OTHER,
+        )
+
+    if doc_deleted:
+        return RedirectResponse(
+            url=f"/documents?notice=Document+{doc_id}+and+all+its+revisions+were+deleted",
+            status_code=status.HTTP_303_SEE_OTHER,
+        )
+
+    rev_str = "revision" if deleted_count == 1 else "revisions"
+    return RedirectResponse(
+        url=f"/docs/{doc_id}/history?notice=Successfully+deleted+{deleted_count}+{rev_str}",
+        status_code=status.HTTP_303_SEE_OTHER,
     )
 
 
