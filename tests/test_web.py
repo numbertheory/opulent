@@ -7,7 +7,8 @@ async def test_get_index_page(client: AsyncClient):
     response = await client.get("/")
     assert response.status_code == 200
     assert "OPULENT" in response.text
-    assert "Create Document" in response.text
+    assert "Publish Document" in response.text
+    assert "Public Pastebin" not in response.text
     assert "No documents created yet" in response.text
 
 

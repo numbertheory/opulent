@@ -250,9 +250,12 @@ body {
 .container {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 2rem 1.5rem;
+  padding: 1.5rem 1.5rem;
   flex: 1;
   width: 100%;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
 }
 
 /* Banner / Notices */
@@ -316,11 +319,28 @@ body {
   padding: 1.5rem;
 }
 
-/* Editor Form */
+/* Editor Form & Viewport Filling Styles */
+.editor-card {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.editor-card-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  padding: 1.5rem;
+}
+
 .editor-form {
   display: flex;
   flex-direction: column;
   gap: 1.25rem;
+  flex: 1;
+  min-height: 0;
 }
 
 .form-row {
@@ -335,6 +355,13 @@ body {
   gap: 0.4rem;
   flex: 1;
   min-width: 200px;
+}
+
+.editor-content-group {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
 }
 
 .form-label {
@@ -354,6 +381,8 @@ body {
   font-family: inherit;
   font-size: 0.95rem;
   transition: all 0.2s ease;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .form-input:focus, .form-select:focus, .form-textarea:focus {
@@ -369,6 +398,13 @@ body {
   resize: vertical;
   line-height: 1.5;
   tab-size: 4;
+}
+
+.editor-content-group .form-textarea {
+  flex: 1;
+  min-height: calc(100vh - 340px);
+  min-height: calc(100dvh - 340px);
+  height: 100%;
 }
 
 .editor-footer {
@@ -904,14 +940,9 @@ body {
   margin-bottom: 0.75rem;
 }
 
-/* Footer */
+/* Footer (Removed in both desktop and mobile versions) */
 .site-footer {
-  background-color: var(--bg-secondary);
-  border-top: 1px solid var(--border-color);
-  padding: 2rem 1.5rem;
-  margin-top: auto;
-  font-size: 0.85rem;
-  color: var(--text-muted);
+  display: none !important;
 }
 
 .footer-content {
@@ -1384,6 +1415,393 @@ body {
   color: #0369a1;
   border-color: #bae6fd;
 }
+
+/* ==========================================================================
+   Mobile Responsive Styles (Skinny Viewports & Portrait Mode)
+   Desktop experience (> 768px) is 100% preserved and untouched.
+   ========================================================================== */
+
+@media (max-width: 768px) {
+  /* Layout & Containers */
+  .container {
+    padding: 1.25rem 0.85rem;
+  }
+
+  .site-header {
+    top: 0;
+  }
+
+  .nav-container {
+    padding: 0.65rem 0.85rem;
+  }
+
+  .brand {
+    gap: 0.5rem;
+  }
+
+  .brand-gem {
+    width: 26px;
+    height: 26px;
+    font-size: 0.9rem;
+  }
+
+  .brand-title {
+    font-size: 1.2rem;
+  }
+
+  .brand-subtitle {
+    display: none; /* Hide subtitle on mobile to give space for nav controls */
+  }
+
+  .nav-links {
+    gap: 0.45rem;
+  }
+
+  /* Keep the documents button at the top clearly visible */
+  .nav-docs-btn {
+    display: inline-flex !important;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.35rem 0.65rem;
+    font-size: 0.8rem;
+  }
+
+  /* Remove Documents Flyover & Left Docked Trigger on Mobile */
+  .docked-drawer-tab,
+  .drawer,
+  .drawer-backdrop {
+    display: none !important;
+  }
+
+  /* Cards */
+  .card {
+    border-radius: 10px;
+  }
+
+  .card-header {
+    padding: 1rem 1rem;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+  }
+
+  .card-header > div:last-child {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    width: 100%;
+  }
+
+  .card-title {
+    font-size: 1.05rem;
+  }
+
+  .card-body {
+    padding: 1.1rem 1rem;
+  }
+
+  /* Forms & Inputs */
+  .form-row {
+    flex-direction: column;
+    gap: 0.85rem;
+  }
+
+  .form-row > .form-group {
+    min-width: 0 !important;
+    width: 100% !important;
+    flex: 1 1 100% !important;
+  }
+
+  .form-input,
+  .form-select,
+  .form-textarea {
+    font-size: 16px; /* Prevents auto-zoom on iOS mobile browsers */
+    padding: 0.65rem 0.85rem;
+    border-radius: 8px;
+  }
+
+  .form-textarea {
+    min-height: 220px;
+    font-size: 16px;
+    line-height: 1.45;
+  }
+
+  .form-checkbox {
+    width: 19px;
+    height: 19px;
+  }
+
+  /* Editor Footer & Actions */
+  .editor-footer {
+    flex-direction: column-reverse;
+    align-items: stretch;
+    gap: 0.75rem;
+  }
+
+  .editor-footer > button,
+  .editor-footer > .btn,
+  .editor-footer > div:last-child {
+    width: 100%;
+  }
+
+  .editor-footer > div:last-child {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  .editor-footer > div:last-child > .btn {
+    flex: 1 1 auto;
+  }
+
+  .editor-footer .btn {
+    min-height: 44px;
+    font-size: 0.95rem;
+    justify-content: center;
+  }
+
+  .editor-stats {
+    justify-content: center;
+    font-size: 0.8rem;
+    gap: 0.85rem;
+  }
+
+  /* Document View Page */
+  .doc-title-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.85rem;
+    margin-bottom: 0.85rem;
+  }
+
+  .doc-main-title {
+    font-size: 1.45rem;
+    line-height: 1.3;
+  }
+
+  .doc-actions {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    gap: 0.45rem;
+    width: 100%;
+  }
+
+  .doc-actions .btn {
+    width: 100%;
+    min-height: 38px;
+    padding: 0.45rem 0.6rem;
+    font-size: 0.825rem;
+    justify-content: center;
+    box-sizing: border-box;
+  }
+
+  .doc-meta-bar {
+    padding: 0.65rem 0.85rem;
+    gap: 0.5rem 0.85rem;
+    font-size: 0.8rem;
+  }
+
+  .doc-content-container {
+    padding: 1.15rem 0.85rem;
+    border-radius: 10px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .markdown-body pre,
+  .highlight pre {
+    padding: 0.85rem;
+    font-size: 0.825rem;
+    border-radius: 6px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .markdown-body table {
+    display: block;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    width: 100%;
+  }
+
+  /* Compare & History Form Stacking */
+  form[action*="/compare"] {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 0.75rem !important;
+  }
+
+  form[action*="/compare"] .form-group {
+    min-width: 0 !important;
+    width: 100% !important;
+  }
+
+  form[action*="/compare"] button {
+    width: 100% !important;
+    min-height: 42px;
+    justify-content: center;
+  }
+
+  /* Tables across the app */
+  .docs-table-wrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    width: 100%;
+  }
+
+  .docs-table th {
+    padding: 0.65rem 0.55rem;
+    font-size: 0.72rem;
+  }
+
+  .docs-table td {
+    padding: 0.75rem 0.55rem;
+    font-size: 0.85rem;
+  }
+
+  .doc-title-wrapper {
+    gap: 0.55rem;
+  }
+
+  .doc-link {
+    font-size: 0.9rem;
+  }
+
+  .doc-snippet {
+    max-width: 200px;
+    font-size: 0.75rem;
+  }
+
+  /* Diff View */
+  .diff-gutter {
+    width: 32px;
+    padding: 0.2rem 0.35rem;
+    font-size: 0.72rem;
+  }
+
+  .diff-symbol {
+    width: 20px;
+    font-size: 0.8rem;
+  }
+
+  .diff-code {
+    padding: 0.2rem 0.5rem;
+    font-size: 0.78rem;
+  }
+
+  /* Pagination */
+  .pagination {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 0.65rem;
+    padding: 0.85rem 0;
+  }
+
+  .pagination-controls {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.35rem;
+  }
+
+  .page-num {
+    width: 32px;
+    height: 32px;
+    font-size: 0.8rem;
+  }
+
+  /* Toast & Alerts */
+  .toast {
+    left: 1rem;
+    right: 1rem;
+    bottom: 1.25rem;
+    justify-content: center;
+    text-align: center;
+    font-size: 0.85rem;
+    padding: 0.65rem 1rem;
+  }
+
+  .alert {
+    padding: 0.75rem 0.9rem;
+    font-size: 0.85rem;
+    gap: 0.55rem;
+  }
+
+  /* Remove Footer on Mobile */
+  .site-footer {
+    display: none !important;
+  }
+}
+
+@media (max-width: 480px) {
+  /* Ultra-skinny portrait mobile devices (e.g. 360px - 414px) */
+  .container {
+    padding: 0.85rem 0.55rem;
+  }
+
+  .nav-container {
+    padding: 0.55rem 0.65rem;
+  }
+
+  .brand-title {
+    font-size: 1.1rem;
+  }
+
+  .nav-docs-btn {
+    display: inline-flex !important;
+    padding: 0.3rem 0.5rem;
+    font-size: 0.75rem;
+  }
+
+  /* Hide toggle label text on skinny screens so the toggle pill is compact */
+  .theme-toggle-text {
+    display: none;
+  }
+
+  .theme-toggle-btn {
+    padding: 0.2rem 0.3rem;
+  }
+
+  /* Standalone documents table on skinny screens */
+  .docs-table th {
+    padding: 0.55rem 0.4rem;
+    font-size: 0.68rem;
+  }
+
+  .docs-table td {
+    padding: 0.65rem 0.4rem;
+    font-size: 0.82rem;
+  }
+
+  .doc-snippet {
+    display: none; /* Hide content preview to keep row heights compact */
+  }
+
+  .doc-actions {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.35rem;
+  }
+
+  .doc-actions .btn {
+    padding: 0.4rem 0.35rem;
+    font-size: 0.78rem;
+    min-height: 36px;
+  }
+
+  .card-header {
+    padding: 0.85rem 0.75rem;
+  }
+
+  .card-header > div:last-child > .btn {
+    flex: 1 1 auto;
+    font-size: 0.78rem;
+    padding: 0.4rem 0.6rem;
+  }
+
+  .doc-main-title {
+    font-size: 1.3rem;
+  }
+}
+
 
 
 

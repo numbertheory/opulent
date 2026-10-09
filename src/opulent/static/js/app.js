@@ -489,6 +489,41 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
+  // Mobile touch gesture: swipe left on drawer to close
+  const drawerEl = document.getElementById("docs-drawer");
+  if (drawerEl) {
+    let touchStartX = 0;
+    let touchStartY = 0;
+
+    drawerEl.addEventListener(
+      "touchstart",
+      (e) => {
+        if (e.changedTouches && e.changedTouches.length > 0) {
+          touchStartX = e.changedTouches[0].clientX;
+          touchStartY = e.changedTouches[0].clientY;
+        }
+      },
+      { passive: true }
+    );
+
+    drawerEl.addEventListener(
+      "touchend",
+      (e) => {
+        if (e.changedTouches && e.changedTouches.length > 0) {
+          const touchEndX = e.changedTouches[0].clientX;
+          const touchEndY = e.changedTouches[0].clientY;
+          const diffX = touchEndX - touchStartX;
+          const diffY = Math.abs(touchEndY - touchStartY);
+
+          if (diffX < -45 && diffY < 100) {
+            closeDrawer();
+          }
+        }
+      },
+      { passive: true }
+    );
+  }
+
   // Textarea live stats and tab handling
   const editor = document.getElementById("doc-content-input");
   const statsLines = document.getElementById("stat-lines");
