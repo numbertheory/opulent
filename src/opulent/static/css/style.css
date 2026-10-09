@@ -757,6 +757,87 @@ body {
   color: var(--text-secondary);
 }
 
+/* Document Content Frame & Toolbar */
+.doc-content-frame {
+  background-color: var(--doc-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  box-shadow: var(--card-shadow);
+  overflow: hidden;
+  margin-top: 1rem;
+}
+
+.doc-frame-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.45rem 0.85rem;
+  background-color: var(--bg-tertiary);
+  border-bottom: 1px solid var(--border-color);
+  font-size: 0.8rem;
+  user-select: none;
+}
+
+.doc-frame-toolbar-left,
+.doc-frame-toolbar-right {
+  display: inline-flex;
+  align-items: center;
+}
+
+.line-numbers-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  cursor: pointer;
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  font-weight: 500;
+  line-height: 1;
+  padding: 0.2rem 0.35rem;
+  border-radius: 4px;
+  transition: color 0.15s ease;
+  user-select: none;
+}
+
+.line-numbers-toggle:hover {
+  color: var(--text-primary);
+}
+
+.line-numbers-toggle input[type="checkbox"] {
+  cursor: pointer;
+  width: 14px;
+  height: 14px;
+  accent-color: var(--gold-primary);
+  margin: 0;
+}
+
+.line-numbers-toggle-label {
+  user-select: none;
+}
+
+.frame-copy-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  background-color: var(--bg-secondary);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  line-height: 1;
+}
+
+.frame-copy-btn:hover {
+  border-color: var(--gold-primary);
+  color: var(--gold-hover);
+  background-color: var(--bg-primary);
+  box-shadow: 0 0 8px var(--gold-glow);
+}
+
 /* Document View Container */
 .doc-content-container {
   background-color: var(--doc-bg);
@@ -766,6 +847,139 @@ body {
   min-height: 250px;
   box-shadow: var(--card-shadow);
   overflow-x: auto;
+}
+
+.doc-content-frame .doc-content-container {
+  background-color: transparent;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  padding: 1.75rem 2rem;
+  min-height: 200px;
+  overflow-x: auto;
+}
+
+/* Line Numbers Toggle - Code & Plain Text */
+.doc-content-frame:not(.show-line-numbers) .highlighttable td.linenos,
+.doc-content-container:not(.show-line-numbers) .highlighttable td.linenos {
+  display: none !important;
+}
+
+.doc-content-frame:not(.show-line-numbers) .highlighttable td.code,
+.doc-content-container:not(.show-line-numbers) .highlighttable td.code {
+  padding-left: 0.25rem !important;
+}
+
+/* Line Numbers Toggle - Markdown */
+.doc-content-frame.show-line-numbers .markdown-body,
+.doc-content-container.show-line-numbers .markdown-body {
+  counter-reset: md-line;
+  padding-left: 3.5rem;
+  position: relative;
+}
+
+.doc-content-frame.show-line-numbers .markdown-body::before,
+.doc-content-container.show-line-numbers .markdown-body::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 2.75rem;
+  width: 1px;
+  background-color: var(--border-color);
+  pointer-events: none;
+}
+
+.doc-content-frame.show-line-numbers .markdown-body > h1,
+.doc-content-frame.show-line-numbers .markdown-body > h2,
+.doc-content-frame.show-line-numbers .markdown-body > h3,
+.doc-content-frame.show-line-numbers .markdown-body > h4,
+.doc-content-frame.show-line-numbers .markdown-body > h5,
+.doc-content-frame.show-line-numbers .markdown-body > h6,
+.doc-content-frame.show-line-numbers .markdown-body > p,
+.doc-content-frame.show-line-numbers .markdown-body > blockquote,
+.doc-content-frame.show-line-numbers .markdown-body > pre,
+.doc-content-frame.show-line-numbers .markdown-body > table,
+.doc-content-frame.show-line-numbers .markdown-body > hr,
+.doc-content-frame.show-line-numbers .markdown-body > ul > li,
+.doc-content-frame.show-line-numbers .markdown-body > ol > li,
+.doc-content-container.show-line-numbers .markdown-body > h1,
+.doc-content-container.show-line-numbers .markdown-body > h2,
+.doc-content-container.show-line-numbers .markdown-body > h3,
+.doc-content-container.show-line-numbers .markdown-body > h4,
+.doc-content-container.show-line-numbers .markdown-body > h5,
+.doc-content-container.show-line-numbers .markdown-body > h6,
+.doc-content-container.show-line-numbers .markdown-body > p,
+.doc-content-container.show-line-numbers .markdown-body > blockquote,
+.doc-content-container.show-line-numbers .markdown-body > pre,
+.doc-content-container.show-line-numbers .markdown-body > table,
+.doc-content-container.show-line-numbers .markdown-body > hr,
+.doc-content-container.show-line-numbers .markdown-body > ul > li,
+.doc-content-container.show-line-numbers .markdown-body > ol > li {
+  position: relative;
+  counter-increment: md-line;
+}
+
+.doc-content-frame.show-line-numbers .markdown-body > h1::before,
+.doc-content-frame.show-line-numbers .markdown-body > h2::before,
+.doc-content-frame.show-line-numbers .markdown-body > h3::before,
+.doc-content-frame.show-line-numbers .markdown-body > h4::before,
+.doc-content-frame.show-line-numbers .markdown-body > h5::before,
+.doc-content-frame.show-line-numbers .markdown-body > h6::before,
+.doc-content-frame.show-line-numbers .markdown-body > p::before,
+.doc-content-frame.show-line-numbers .markdown-body > blockquote::before,
+.doc-content-frame.show-line-numbers .markdown-body > pre::before,
+.doc-content-frame.show-line-numbers .markdown-body > table::before,
+.doc-content-frame.show-line-numbers .markdown-body > hr::before,
+.doc-content-container.show-line-numbers .markdown-body > h1::before,
+.doc-content-container.show-line-numbers .markdown-body > h2::before,
+.doc-content-container.show-line-numbers .markdown-body > h3::before,
+.doc-content-container.show-line-numbers .markdown-body > h4::before,
+.doc-content-container.show-line-numbers .markdown-body > h5::before,
+.doc-content-container.show-line-numbers .markdown-body > h6::before,
+.doc-content-container.show-line-numbers .markdown-body > p::before,
+.doc-content-container.show-line-numbers .markdown-body > blockquote::before,
+.doc-content-container.show-line-numbers .markdown-body > pre::before,
+.doc-content-container.show-line-numbers .markdown-body > table::before,
+.doc-content-container.show-line-numbers .markdown-body > hr::before {
+  content: counter(md-line);
+  position: absolute;
+  left: -3.5rem;
+  width: 2.2rem;
+  text-align: right;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  font-weight: 400;
+  line-height: inherit;
+  user-select: none;
+  opacity: 0.7;
+}
+
+.doc-content-frame.show-line-numbers .markdown-body > ul,
+.doc-content-frame.show-line-numbers .markdown-body > ol,
+.doc-content-container.show-line-numbers .markdown-body > ul,
+.doc-content-container.show-line-numbers .markdown-body > ol {
+  margin-left: 0;
+  padding-left: 1.5rem;
+}
+
+.doc-content-frame.show-line-numbers .markdown-body > ul > li::before,
+.doc-content-frame.show-line-numbers .markdown-body > ol > li::before,
+.doc-content-container.show-line-numbers .markdown-body > ul > li::before,
+.doc-content-container.show-line-numbers .markdown-body > ol > li::before {
+  content: counter(md-line);
+  position: absolute;
+  left: -5rem;
+  width: 2.2rem;
+  text-align: right;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  font-weight: 400;
+  line-height: inherit;
+  user-select: none;
+  opacity: 0.7;
 }
 
 /* Markdown Styling */
@@ -1597,6 +1811,62 @@ body {
   .doc-meta-bar {
     padding: 0.65rem 0.85rem;
     gap: 0.5rem 0.85rem;
+    font-size: 0.8rem;
+  }
+
+  .doc-content-frame {
+    border-radius: 10px;
+    margin-top: 0.75rem;
+  }
+
+  .doc-frame-toolbar {
+    padding: 0.4rem 0.65rem;
+    font-size: 0.775rem;
+  }
+
+  .doc-content-frame .doc-content-container {
+    padding: 1rem 0.75rem;
+  }
+
+  .show-line-numbers .markdown-body {
+    padding-left: 2.65rem;
+  }
+
+  .show-line-numbers .markdown-body::before {
+    left: 2.1rem;
+  }
+
+  .show-line-numbers .markdown-body > h1::before,
+  .show-line-numbers .markdown-body > h2::before,
+  .show-line-numbers .markdown-body > h3::before,
+  .show-line-numbers .markdown-body > h4::before,
+  .show-line-numbers .markdown-body > h5::before,
+  .show-line-numbers .markdown-body > h6::before,
+  .show-line-numbers .markdown-body > p::before,
+  .show-line-numbers .markdown-body > blockquote::before,
+  .show-line-numbers .markdown-body > pre::before,
+  .show-line-numbers .markdown-body > table::before,
+  .show-line-numbers .markdown-body > hr::before {
+    left: -2.65rem;
+    width: 1.75rem;
+    font-size: 0.775rem;
+  }
+
+  .show-line-numbers .markdown-body > ul > li::before,
+  .show-line-numbers .markdown-body > ol > li::before {
+    left: -4.15rem;
+    width: 1.75rem;
+    font-size: 0.775rem;
+  }
+
+  .highlighttable td.linenos {
+    width: 36px;
+    padding-right: 0.65rem;
+    font-size: 0.8rem;
+  }
+
+  .highlighttable td.code {
+    padding-left: 0.65rem;
     font-size: 0.8rem;
   }
 

@@ -77,14 +77,6 @@
         <button
           type="button"
           class="btn btn-secondary btn-sm"
-          onclick="copyText(document.getElementById('raw-doc-content').value, 'Document text copied to clipboard!')"
-          title="Copy the full raw document text"
-        >
-          📋 Copy Text
-        </button>
-        <button
-          type="button"
-          class="btn btn-secondary btn-sm"
           onclick="copyText('{{ full_url }}', 'Document URL copied to clipboard!')"
           title="Copy the URL of this document"
         >
@@ -174,9 +166,39 @@
     </div>
   </div>
 
-  <!-- Formatted Document Body -->
-  <div class="doc-content-container">
-    {{ rendered_html | safe }}
+  <!-- Formatted Document Body Frame -->
+  <div class="doc-content-frame show-line-numbers" id="doc-content-frame">
+    <div class="doc-frame-toolbar">
+      <div class="doc-frame-toolbar-left">
+        <label class="line-numbers-toggle" for="line-numbers-checkbox" title="Toggle line numbers">
+          <input
+            type="checkbox"
+            id="line-numbers-checkbox"
+            checked
+            onchange="toggleLineNumbers(this.checked)"
+          />
+          <span class="line-numbers-toggle-label">Line numbers</span>
+        </label>
+      </div>
+      <div class="doc-frame-toolbar-right">
+        <button
+          type="button"
+          class="frame-copy-btn"
+          id="frame-copy-btn"
+          onclick="copyFrameDocumentContent()"
+          title="Copy content"
+          aria-label="Copy content"
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+          </svg>
+        </button>
+      </div>
+    </div>
+    <div class="doc-content-container show-line-numbers" id="doc-content-container">
+      {{ rendered_html | safe }}
+    </div>
   </div>
 
   <!-- Hidden raw content for JS clipboard copying -->

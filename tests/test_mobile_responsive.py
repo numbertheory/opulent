@@ -155,8 +155,9 @@ async def test_all_features_available_and_functional_on_mobile(client: AsyncClie
     assert view_res.status_code == 200
     html = view_res.text
     assert "✏️ Edit" in html
-    assert f"/docs/{doc_id}/history" in html
-    assert "Copy Text" in html
+    assert "Copy Text" not in html
+    assert "frame-copy-btn" in html
+    assert "line-numbers-checkbox" in html
     assert "Copy URL" in html
     assert "Raw" in html
 

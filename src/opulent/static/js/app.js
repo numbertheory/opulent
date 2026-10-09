@@ -457,6 +457,59 @@ document.addEventListener("DOMContentLoaded", () => {
       });
   };
 
+  // Frame copy button handler (icon only, copies document content)
+  window.copyFrameDocumentContent = function () {
+    const rawEl = document.getElementById("raw-doc-content");
+    if (!rawEl) return;
+    window.copyText(rawEl.value, "Document text copied to clipboard!");
+
+    const btn = document.getElementById("frame-copy-btn");
+    if (btn) {
+      const origHtml = btn.innerHTML;
+      btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
+      setTimeout(() => {
+        btn.innerHTML = origHtml;
+      }, 1500);
+    }
+  };
+
+  // Toggle Line Numbers for code and markdown files
+  window.toggleLineNumbers = function (show) {
+    const frame = document.getElementById("doc-content-frame");
+    const container = document.getElementById("doc-content-container");
+    const checkbox = document.getElementById("line-numbers-checkbox");
+
+    if (checkbox) {
+      checkbox.checked = !!show;
+    }
+    if (frame) {
+      frame.classList.toggle("show-line-numbers", !!show);
+    }
+    if (container) {
+      container.classList.toggle("show-line-numbers", !!show);
+    }
+
+    try {
+      localStorage.setItem("opulent_show_line_numbers", show ? "true" : "false");
+    } catch (e) {}
+  };
+
+  function initLineNumbers() {
+    const checkbox = document.getElementById("line-numbers-checkbox");
+    if (!checkbox) return;
+
+    let show = true;
+    try {
+      const saved = localStorage.getItem("opulent_show_line_numbers");
+      if (saved !== null) {
+        show = saved === "true";
+      }
+    } catch (e) {}
+
+    window.toggleLineNumbers(show);
+  }
+  initLineNumbers();
+
   // Keyboard navigation & shortcuts
   document.addEventListener("keydown", (e) => {
     const activeTag = document.activeElement
